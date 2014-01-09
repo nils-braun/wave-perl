@@ -146,20 +146,20 @@ sub writeWaveIn {
 
 sub prepareFolders {
 	if ( ! -e "$WAVE_EXE" ) {
-		die("(EE)\t Konnte wave.exe unter $WAVE_EXE nicht finden oder sie ist nicht ausführbar: $!. Abbruch.");
+		die("(EE)\t (SUFFIX $SUFFIX) Konnte wave.exe unter $WAVE_EXE nicht finden oder sie ist nicht ausführbar: $!. Abbruch.");
 	}
 
 	if ( ! -d "$RESULT_DIR" ) {
-		print("(WW)\t Konnte $RESULT_DIR nicht finden. Ordner wird erstellt.\n");
+		print("(WW)\t (SUFFIX $SUFFIX)Konnte $RESULT_DIR nicht finden. Ordner wird erstellt.\n");
 		mkdir "$RESULT_DIR" or die ("(EE)\t Konnte den Ordner $RESULT_DIR nicht erstellen: $!. Abbruch.");
 	}
 
 	if ( "$WORKING_DIR" eq "" ) {
 		$TEMP_DIR = tempdir("wave.XXXXX", TMPDIR => 1, CLEANUP => 1);
-		print "(WW)\t \$WORKING_DIR nicht gesetzt. Benutze temporären Order $TEMP_DIR.\n";
+		print "(WW)\t (SUFFIX $SUFFIX) \$WORKING_DIR nicht gesetzt. Benutze temporären Order $TEMP_DIR.\n";
 	}
 	elsif ( ! -d "$WORKING_DIR" ) {
-		die("(WW)\t Konnte $WORKING_DIR nicht finden, obwohl es angegeben ist: $!. Abbruch.");
+		die("(WW)\t (SUFFIX $SUFFIX) Konnte $WORKING_DIR nicht finden, obwohl es angegeben ist: $!. Abbruch.");
 	}
 	else {
 		$TEMP_DIR = $WORKING_DIR;
@@ -169,10 +169,10 @@ sub prepareFolders {
 
 	if ( ! "$MAGNET_FILE" eq "" ) {
 		if ( ! -f "$MAGNET_FILE" ) {
-			die("(WW)\t Konnte $MAGNET_FILE nicht finden, obwohl es angegeben ist: $!. Abbruch.");
+			die("(WW)\t (SUFFIX $SUFFIX) Konnte $MAGNET_FILE nicht finden, obwohl es angegeben ist: $!. Abbruch.");
 		}
 		else {
-			symlink "$MAGNET_FILE", "$TEMP_DIR/bmap.dat" or die "(EE)\t Konnte $MAGNET_FILE auf $TEMP_DIR/bmap.dat nicht linken: $!. Abbruch.";
+			symlink "$MAGNET_FILE", "$TEMP_DIR/bmap.dat" or die "(EE)\t (SUFFIX $SUFFIX) Konnte $MAGNET_FILE auf $TEMP_DIR/bmap.dat nicht linken: $!. Abbruch.";
 		}
 	}
 }
@@ -220,7 +220,7 @@ sub calc {
 		open(my $logHandle, ">", "$RESULT_DIR/waveLog_$pid.log") or die ("(EE)\t Konnte den Log $RESULT_DIR/waveLog_$pid.log nicht anlegen; $!. Abbruch.");
 
 		my $date = localtime();
-		print "(LL)\t WAVE (PID $pid) gestartet: $date \n";
+		print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) gestartet: $date \n";
 
 		# TODO: Nicht erst am Ende die Ausgabe schreiben, sondern immer!
 		
@@ -240,12 +240,12 @@ sub calc {
 				my @stderrText = <$stderr>;
 				print $errorLogHandle @stderrText;
 			}
-			die("(EE)\t WAVE (PID $pid) wurde mit einem Fehler beendet. Fehlercode $waveExitStatus. Weitere Informationen in der log-Datei $RESULT_DIR/waveError_$pid.log. Abbruch.")
+			die("(EE)\t WAVE (PID $pid, SUFFIX $SUFFIX) wurde mit einem Fehler beendet. Fehlercode $waveExitStatus. Weitere Informationen in der log-Datei $RESULT_DIR/waveError_$pid.log. Abbruch.")
 		}
 		else {
 			close $errorLogHandle;
 			unlink "$RESULT_DIR/waveError_$pid.log";
-			print "(LL)\t WAVE (PID $pid) beendet ohne Fehler: $date \n";
+			print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) beendet ohne Fehler: $date \n";
 		}
 	
 	}
