@@ -30,6 +30,22 @@ my $OFFSET_FILE = "$ROOT/Input/optimierter Offset 8.26.table";
 open (my $offsetFileHandle, "<", "$OFFSET_FILE") or die "Kann Datei $OFFSET_FILE nicht <C3><B6>ffnen: $!. Abbruch.";
 open (my $resultFileHandle, ">", "$WAVE::RESULT_DIR/result.dat") or die "Konnte $WAVE::RESULT_DIR/result.dat nicht oeffnen. Abbruch.";
 
+
+WAVE::setValue("XSTART", -0.35);
+WAVE::setValue("XSTOP", 9999);
+WAVE::setValue("ISPEC", 1);
+WAVE::setValue("IBUNCH", 0);
+WAVE::setValue("PINCEN(1)", 100);
+WAVE::setValue("IWIGGLER", 0);
+WAVE::setValue("IEXPERT", 0);
+WAVE::setValue("DMYCUR", 0.2);
+WAVE::setValue("KHALBA", 0);
+WAVE::setValue("IRFILB0", -6);
+
+WAVE::setValue("FREQLOW", 7);
+WAVE::setValue("FREQHIG", 9);
+WAVE::setValue("NINTFREQ", 1000);
+
 # Für jede Energie ausführen
 while(<$offsetFileHandle>)
 {
@@ -41,29 +57,10 @@ while(<$offsetFileHandle>)
 		
 		next if ($energy != 0.12);
 		
-		my $childPID = fork();
-
-		if (! $childPID )
-		{		
-			$WAVE::SUFFIX = $energy;
+		$WAVE::SUFFIX = $energy;
 			
-			WAVE::setValue("XSTART", -0.35);
-			WAVE::setValue("XSTOP", 9999);
-			WAVE::setValue("ISPEC", 1);
-			WAVE::setValue("IBUNCH", 0);
-			WAVE::setValue("DMYENERGY", $energy);
-			WAVE::setValue("YSTART", $yStart/1000.0);
-			WAVE::setValue("PINCEN(1)", 100);
-			WAVE::setValue("IWIGGLER", 0);
-			WAVE::setValue("IEXPERT", 0);
-			WAVE::setValue("DMYCUR", 0.2);
-			WAVE::setValue("KHALBA", 0);
-			WAVE::setValue("IRFILB0", -6);
-			
-			WAVE::setValue("FREQLOW", 7);
-			WAVE::setValue("FREQHIG", 9);
-			WAVE::setValue("NINTFREQ", 1000);
-			
-			WAVE::calc();
-		}
+		WAVE::setValue("DMYENERGY", $energy);
+		WAVE::setValue("YSTART", $yStart/1000.0);
+		
+		WAVE::calc();
 }

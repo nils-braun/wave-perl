@@ -252,6 +252,7 @@ sub calc {
 	
 	rewriteFiles();
 	system "cp \"$TEMP_DIR/wave.in\" \"$RESULT_DIR/wave.in\"";
+	system "cp \"$TEMP_DIR/wave.sp0\" \"$RESULT_DIR/wave.sp0\"";
 }
 
 # ------------------------------------------------------------#
