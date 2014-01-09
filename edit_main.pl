@@ -19,7 +19,7 @@ use File::Path qw(make_path);
 # Ordnerstruktur
 my $ROOT = "/home/braun/HiWi/model-40";
 $WAVE::RESULT_DIR = "$ROOT/test";
-$WAVE::MAGNET_FILE = "$ROOT/Opera-Daten/WAVE-Format/bmap.dat"
+$WAVE::MAGNET_FILE = "$ROOT/Opera-Daten/WAVE-Format/bmap.dat";
 
 my $OFFSET_FILE = "$ROOT/Input/optimierter Offset 8.26.table";
 
