@@ -56,7 +56,7 @@ use WAVE::waveIn;
 
 # use PDL::IO::Misc;
 
-my $DEBUG = 1;
+my $DEBUG = 0;
 
 
 use File::Temp qw(tempdir);
@@ -248,7 +248,7 @@ sub calc {
 	}
 	
 	rewriteFiles();
-	cp "$TEMP_DIR/wave.in", "$RESULT_DIR/wave.in";
+	system "cp \"$TEMP_DIR/wave.in\" \"$RESULT_DIR/wave.in\"";
 }
 
 # ------------------------------------------------------------#
@@ -309,7 +309,7 @@ sub rewriteFiles() {
 			print $outputHandle "#\n#Für die Winkelverteilung wird über alle Strahlungsenergien und möglicherweise Quellen summiert\n# Spalten\n# x-Position (m)\n# y-Position (m)\n# Intensität (Photonen/s/mm^2/BW)\n\n";
 			
 
-			@lines = @result;
+			my @lines = @result;
 			
 			while ($#lines > 0) {
 				my (undef, undef, $x, $y) = split /\s+/, (splice @lines, 0, 1)[0];
