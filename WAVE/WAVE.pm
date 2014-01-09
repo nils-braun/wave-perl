@@ -248,6 +248,7 @@ sub calc {
 	}
 	
 	rewriteFiles();
+	cp "$TEMP_DIR/wave.in", "$RESULT_DIR/wave.in";
 }
 
 # ------------------------------------------------------------#
