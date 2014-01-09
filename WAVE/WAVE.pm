@@ -14,9 +14,7 @@ WAVE - Packet um WAVE-Eingaben und -Ausgaben zu steuern
 		# Ordner für die späteren Resultate, wird bei nicht Vorhandensein erstellt
 		my $RESULT_DIR = "/media/Daten/Projects/Perl/test";
 
-		prepareFolders();
-		setValue("DMYENERGY", "2");
-		writeWaveIn($RESULT_DIR);
+		TODO
 
 =head1 DESCRIPTION
 
@@ -246,8 +244,17 @@ sub calc {
 			unlink "$RESULT_DIR/waveError_$pid.log";
 			print "(LL)\t WAVE (PID $pid) beendet ohne Fehler: $date \n";
 		}
+	
 	}
+	
+	rewriteFiles();
+}
 
+# ------------------------------------------------------------#
+# Function rewriteFiles()
+# Gesicherte Dateien in benutzerfreundliches Format speichern
+
+sub rewriteFiles() {
 	# Daten sichern
 	# Trajektorien wenn IWFILT0 != 0, sichere FILETR
 	if(getValue("IWFILT0") != 0) {
@@ -260,6 +267,7 @@ sub calc {
 
 		open(my $outputHandle, ">", "$RESULT_DIR/${SUFFIX}trajectory.dat") or die ("(EE)\t Konnte die Datei $RESULT_DIR/${SUFFIX}trajectory.dat nicht öffnen: $!. Abbruch.");
 		print $outputHandle getHeader("trajectory.dat - Trajektorie und Magnetfeld");
+		print $outputHandle "#\n# Spalten\n# x-Position (m)\n# y-Position (m)\n# z-Position(m)\n# B-Feld in x-Richtung am Teilchenpunkt (T)\n# B-Feld in y-Richtung (T)\n# B-Feld in z-Richtung (T)\n\n";
 		close $outputHandle;
 		
 		# TODO: Dann entfernen:
@@ -275,6 +283,7 @@ sub calc {
 		
 		open(my $outputHandle, ">", "$RESULT_DIR/${SUFFIX}spectrum.dat") or die ("(EE)\t Konnte die Datei $RESULT_DIR/${SUFFIX}spectrum.dat nicht öffnen: $!. Abbruch.");
 		print $outputHandle getHeader("spectrum.dat - Spektrum/Intensitäten");
+		print $outputHandle "#\n# Spalten\n# Strahlungsenergie (eV) \n# Intensität (Photonen/s/mm^2/BW)\n\n";
 		
 		# TODO: Ändern, wenn PDL funktioniert
 		open(my $resultHandle, "<", "$TEMP_DIR/$filename") or die ("(EE)\t Konnte die Datei $TEMP_DIR/$filename nicht öffnen: $!. Abbruch.");
@@ -291,9 +300,38 @@ sub calc {
 		
 		print $outputHandle @result;
 		close $outputHandle;
-	}
+		
+		# TODO: Pinhole als Winkelverteilung sichern
+		if(getValue("IPIN") != 0) {
+			open(my $outputHandle, ">", "$RESULT_DIR/${SUFFIX}angular_distribution.dat") or die ("(EE)\t Konnte die Datei $RESULT_DIR/${SUFFIX}angular_distribution.dat nicht öffnen: $!. Abbruch.");
+			print $outputHandle getHeader("angular_distribution.dat - Spektrum/Intensitäten als Winkelverteilung");
+			print $outputHandle "#\n#Für die Winkelverteilung wird über alle Strahlungsenergien und möglicherweise Quellen summiert\n# Spalten\n# x-Position (m)\n# y-Position (m)\n# Intensität (Photonen/s/mm^2/BW)\n\n";
+			
 
-# 	system "cp $TEMP_DIR/* $RESULT_DIR";
+			@lines = @result;
+			
+			while ($#lines > 0) {
+				my (undef, undef, $x, $y) = split /\s+/, (splice @lines, 0, 1)[0];
+				my $sum = 0;
+
+				for (my $i = 0; $i < getValue("NINTFREQ"); $i++) {
+
+					my (undef, $energy, undef, undef) = split /\s+/, $lines[0];
+
+					# für mehr als eine Quelle: nur letzes Ergebnis betrachten
+					splice @lines, 0, 46;
+					my (undef, $flux) = split /\s+/, splice @lines, 0, 1;
+					# TODO: für nur eine Quelle: das Ergebnis direkt betrachten
+
+					$sum += $flux;
+				}
+				
+				$sum = $sum / $NINTFREQ;
+
+				printf $resultFileHandle ("%f %f %g\n", $x, $y, $sum);
+			}
+		}
+	}
 }
 
 
