@@ -28,7 +28,7 @@ my $OFFSET_FILE = "$ROOT/Input/optimierter Offset 8.26.table";
 # 
 
 open (my $offsetFileHandle, "<", "$OFFSET_FILE") or die "Kann Datei $OFFSET_FILE nicht <C3><B6>ffnen: $!. Abbruch.";
-open (my $resultFileHandle, ">", "$WAVE::RESULT_DIR/result.dat") or die "Konnte $COPY_DIR/result.dat nicht oeffnen. Abbruch.";
+open (my $resultFileHandle, ">", "$WAVE::RESULT_DIR/result.dat") or die "Konnte $WAVE::RESULT_DIR/result.dat nicht oeffnen. Abbruch.";
 
 # Für jede Energie ausführen
 while(<$offsetFileHandle>)
@@ -43,14 +43,14 @@ while(<$offsetFileHandle>)
 
 		if (! $childPID )
 		{		
-			$SUFFIX = $energy;
+			$WAVE::SUFFIX = $energy;
 			
-			setValue("XSTART", -0.35);
-			setValue("ISPEC", 1);
-			setValue("IBUNCH", 0);
-			setValue("DMYENERGY", $energy);
-			setValue("YSTART", $yStart/1000.0);
-			setValue("PINCEN(1)", 100);
+			WAVE::setValue("XSTART", -0.35);
+			WAVE::setValue("ISPEC", 1);
+			WAVE::setValue("IBUNCH", 0);
+			WAVE::setValue("DMYENERGY", $energy);
+			WAVE::setValue("YSTART", $yStart/1000.0);
+			WAVE::setValue("PINCEN(1)", 100);
 			
 			WAVE::calc();
 		}
