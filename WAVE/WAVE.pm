@@ -228,7 +228,10 @@ sub calc {
 		my $waveExitStatus = $? >> 8;
 		
 		my @stdourText = <$stdout>;
-		print $logHandle @stdourText;
+		
+		# TODO: nicht immer log schreiben. Da wird man ja verrückt.
+		#print $logHandle @stdourText;
+		unlink "$RESULT_DIR/waveLog_$pid.log";
 
 		
 		if($waveExitStatus > 0) {
