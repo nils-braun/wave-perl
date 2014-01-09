@@ -329,8 +329,10 @@ sub rewriteFiles() {
 				
 				$sum = $sum / getValue("NINTFREQ");
 
-				printf $resultFileHandle ("%f %f %g\n", $x, $y, $sum);
+				printf $outputHandle ("%f %f %g\n", $x, $y, $sum);
 			}
+			
+			close $outputHandle;
 		}
 	}
 }
