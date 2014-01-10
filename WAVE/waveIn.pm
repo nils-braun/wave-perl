@@ -4,25 +4,25 @@ package WAVE::waveIn;
 
 =head1 NAME
 
-		WAVE::waveIn - Packet der wave.in-Datei
+WAVE::waveIn - Packet der wave.in-Datei
 
 =head1 SYNOPSIS
 
-		use WAVE::waveIn;
+use WAVE::waveIn;
 
 =head1 DESCRIPTION
 
-		Stellt den Hash %waveInArray zur weiteren Verwendung bereit. Dieser enthaelt 
-		die Konstanten der wave.in-Datei, welche aus einer Urdatei gelesen werden.
+Stellt den Hash %waveInArray zur weiteren Verwendung bereit. Dieser enthaelt 
+die Konstanten der wave.in-Datei, welche aus einer Urdatei gelesen werden.
 
 =head1 AUTHOR
 
-		Nils Braun I<area51.nils@googlemail.com>
+Nils Braun I<area51.nils@googlemail.com>
 
 head1 ACKNOWLEDGEMENTS
 
-		Das Programm WAVE ist geschrieben von Michael Scheer. Für weitere Informationen
-		ueber Lizenzen, siehe dort.
+Das Programm WAVE ist geschrieben von Michael Scheer. Für weitere Informationen
+ueber Lizenzen, siehe dort.
 
 =cut
 
