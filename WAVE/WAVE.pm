@@ -65,7 +65,8 @@ use IPC::Open3;
 # ------------------------------------------------------------ #
 # Ordnerstrukturen und Pfade
 # Pfad zur WAVE Executable, muss vorhanden sein
-my $WAVE_EXE = "/home/braun/Programme/wave/wave/bin/wave.exe";
+# Neue wave.exe funktioniert anders?????
+my $WAVE_EXE = "/home/braun/Programme/wave/wave/bin/wave.exe.bkp";
 
 # Ordner für die späteren Resultate, wird bei nicht Vorhandensein erstellt
 our $RESULT_DIR = "";
@@ -251,9 +252,6 @@ sub calc {
         $stderr = gensym;
 
         $ENV{ROOTSYS} = "/usr/share/root";
-		my $date = localtime();
-		print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) gestartet: $date \n";
-
         my $pid = open3( $stdin, $stdout, $stderr, "$WAVE_EXE" )
           or die("(EE)\t Fehler bei Ausführen von wave: $!. Abbruch.");
 
@@ -267,6 +265,9 @@ sub calc {
 "(EE)\t Konnte den Log $RESULT_DIR/log/waveLog_$pid.log nicht anlegen; $!. Abbruch."
           );
 
+
+		my $date = localtime();
+		print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) gestartet: $date \n";
 
 		waitpid( $pid, 0 );
         my $waveExitStatus = $? >> 8;
@@ -285,7 +286,7 @@ sub calc {
 		}
 		else {
 			close $errorLogHandle;
-			unlink "$RESULT_DIR/waveError_$pid.log";
+			unlink "$RESULT_DIR/log/waveError_$pid.log";
 			$date = localtime();
 			print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) beendet ohne Fehler: $date \n";
 		}
@@ -293,8 +294,6 @@ sub calc {
 	}
 	
 	rewriteFiles();
-	system "cp \"$TEMP_DIR/wave.in\" \"$RESULT_DIR/wave.in\"";
-	system "cp \"$TEMP_DIR/wave.sp0\" \"$RESULT_DIR/wave.sp0\"";        
 }
 
 # ------------------------------------------------------------#
@@ -327,6 +326,9 @@ sub rewriteFiles {
         # TODO: Dann entfernen:
         system
 "cat \"$TEMP_DIR/$filename\" | awk '{ if (NR % 4 == 3 && NR > 1) { ORS = \" \"; print \$2, \$3, \$1; } else if (NR % 4 == 1 && NR > 1) { ORS = \"\\n\"; print \$2, \$3, \$1; } }' >> \"$RESULT_DIR/${SUFFIX}trajectory.dat\"";
+
+		my ($x, $y, $z, undef) = split /[\s]+/, `tail -n1 \"$RESULT_DIR/${SUFFIX}trajectory.dat\"`;
+		our $resultEndposition = [$x, $y, $z];
     }
 
     # Spektren wenn ISPEC != 0, sichere FILESP0
@@ -434,7 +436,8 @@ our @ISA = qw(Exporter);
 # Exportieren der Funktionen und Variablen
 our @EXPORT =
   qw( setValue getValue RESULT_DIR WORKING_DIR prepareFolders calc SUFFIX USER_TEXT 
-	resultMaximumEnergy flagWriteSpectrum flagWriteTrajectory
+	resultMaximumEnergy resultEndposition
+	flagWriteSpectrum flagWriteTrajectory
 );
 
 return 1;
