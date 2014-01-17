@@ -1,4 +1,4 @@
-# TODO: Koordinaten aendern!!!!
+# TODO: Koordinaten ueberpruefen
 # Verschiedene Funktionen zum Setzen von WAVE-Input Variablen
 
 use strict;
@@ -22,12 +22,12 @@ sub setNoEndposition {
 
 sub setObservationPoint {
     my ( $x, $y, $z ) = @_;
-    WAVE::setValue( "PINCEN(1)", $x );
-    WAVE::setValue( "PINCEN(2)", $y );
-    WAVE::setValue( "PINCEN(3)", $z );
-    WAVE::setValue( "OBS1X", $x );
-    WAVE::setValue( "OBS1Y", $y );
-    WAVE::setValue( "OBS1Z", $z );
+    WAVE::setValue( "PINCEN(1)", $z );
+    WAVE::setValue( "PINCEN(2)", $x );
+    WAVE::setValue( "PINCEN(3)", $y );
+    WAVE::setValue( "OBS1X", $z );
+    WAVE::setValue( "OBS1Y", $x );
+    WAVE::setValue( "OBS1Z", $y );
 }
 
 sub setFreq {
