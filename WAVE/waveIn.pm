@@ -231,7 +231,7 @@ my $waveInText = <<'WAVEINCONFIGENDE';
 
    !-------------------------- MAGNETIC FIELD -------------------------------
 
-	IBSUPER=1	! flag to allow superposition of magnetic field
+	IBSUPER=0	! flag to allow superposition of magnetic field
 			! configurations
 
 	IBERROR=0	! superimpose magnetic field errors (namelist BERRORN)
@@ -290,7 +290,7 @@ my $waveInText = <<'WAVEINCONFIGENDE';
 	    IMGSQF=0	! Fourier transformation used for dipole fields
 			! makes dipole fields MAXWELL conform
 
-	KHALBA=1	! insertion device described by HALBACH's formulas
+	KHALBA=0	! insertion device described by HALBACH's formulas
 			! parameter namelist HALBACH
 			! magnetic field routine BHALBA
 			! KHALBA.lt.0 means zero field outside device
