@@ -251,6 +251,8 @@ sub calc {
         $stderr = gensym;
 
         $ENV{ROOTSYS} = "/usr/share/root";
+		my $date = localtime();
+		print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) gestartet: $date \n";
 
         my $pid = open3( $stdin, $stdout, $stderr, "$WAVE_EXE" )
           or die("(EE)\t Fehler bei Ausführen von wave: $!. Abbruch.");
@@ -265,40 +267,34 @@ sub calc {
 "(EE)\t Konnte den Log $RESULT_DIR/log/waveLog_$pid.log nicht anlegen; $!. Abbruch."
           );
 
-        my $date = localtime();
-        print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) gestartet: $date \n";
 
-        # TODO: Nicht erst am Ende die Ausgabe schreiben, sondern immer!
-
-        waitpid( $pid, 0 );
+		waitpid( $pid, 0 );
         my $waveExitStatus = $? >> 8;
 
         my @stdourText = <$stdout>;
 
         print $logHandle @stdourText;
-        unlink "$RESULT_DIR/log/waveLog_$pid.log";
-
-        if ( $waveExitStatus > 0 ) {
-
-            if ($stderr) {
-                my @stderrText = <$stderr>;
-                print $errorLogHandle @stderrText;
-            }
-            die(
-"(EE)\t WAVE (PID $pid, SUFFIX $SUFFIX) wurde mit einem Fehler beendet. Fehlercode $waveExitStatus. Weitere Informationen in der log-Datei $RESULT_DIR/log/waveError_$pid.log. Abbruch."
-            );
-        }
-        else {
-            close $errorLogHandle;
-            unlink "$RESULT_DIR/log/waveError_$pid.log";
+		
+		if($waveExitStatus > 0) {
+			
+			if($stderr) {
+				my @stderrText = <$stderr>;
+				print $errorLogHandle @stderrText;
+			}
+			die("(EE)\t WAVE (PID $pid, SUFFIX $SUFFIX) wurde mit einem Fehler beendet. Fehlercode $waveExitStatus. Weitere Informationen in der log-Datei $RESULT_DIR/waveError_$pid.log. Abbruch.")
+		}
+		else {
+			close $errorLogHandle;
+			unlink "$RESULT_DIR/waveError_$pid.log";
 			$date = localtime();
-            print
-"(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) beendet ohne Fehler: $date \n";
-        }
-
-    }
-
-    rewriteFiles();
+			print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) beendet ohne Fehler: $date \n";
+		}
+	
+	}
+	
+	rewriteFiles();
+	system "cp \"$TEMP_DIR/wave.in\" \"$RESULT_DIR/wave.in\"";
+	system "cp \"$TEMP_DIR/wave.sp0\" \"$RESULT_DIR/wave.sp0\"";        
 }
 
 # ------------------------------------------------------------#
