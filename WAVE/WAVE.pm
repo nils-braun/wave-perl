@@ -52,6 +52,7 @@ package WAVE;
 
 use strict;
 use warnings;
+use POSIX;
 use WAVE::waveIn;
 
 # use PDL::IO::Misc;
@@ -309,10 +310,6 @@ sub rewriteFiles {
         $filename =~ /[\s]*'(.*)'.*/;
         $filename = $1;
 
-# TODO: Ändern, wenn PDL funktioniert
-# open(my $resultHandle, "<", "$TEMP_DIR/$filename") or die ("(EE)\t Konnte die Datei $TEMP_DIR/$filename nicht öffnen: $!. Abbruch.");
-# $x = rcols( <$resultHandle>, { EXCLUDE => '/^*/' }, [] );
-
         open( my $outputHandle, ">", "$RESULT_DIR/${SUFFIX}trajectory.dat" )
           or die(
 "(EE)\t Konnte die Datei $RESULT_DIR/${SUFFIX}trajectory.dat nicht öffnen: $!. Abbruch."
@@ -323,7 +320,7 @@ sub rewriteFiles {
 "#\n# Spalten\n# x-Position (m)\n# y-Position (m)\n# z-Position(m)\n# B-Feld in x-Richtung am Teilchenpunkt (T)\n# B-Feld in y-Richtung (T)\n# B-Feld in z-Richtung (T)\n\n";
         close $outputHandle;
 
-        # TODO: Dann entfernen:
+		# TODO: Besser machen?
         system
 "cat \"$TEMP_DIR/$filename\" | awk '{ if (NR % 4 == 3 && NR > 1) { ORS = \" \"; print \$2, \$3, \$1; } else if (NR % 4 == 1 && NR > 1) { ORS = \"\\n\"; print \$2, \$3, \$1; } }' >> \"$RESULT_DIR/${SUFFIX}trajectory.dat\"";
 
@@ -338,7 +335,6 @@ sub rewriteFiles {
         $filename =~ /[\s]*'(.*)'.*/;
         $filename = $1;
 
-        # TODO: Ändern, wenn PDL funktioniert
         open( my $resultHandle, "<", "$TEMP_DIR/$filename" )
           or die(
 "(EE)\t Konnte die Datei $TEMP_DIR/$filename nicht öffnen: $!. Abbruch."
@@ -346,18 +342,7 @@ sub rewriteFiles {
         my @result = <$resultHandle>;
 
         # Anfang wegschneiden
-        my $i = 0;
-        for ( $i = 0 ; $i < $#result ; $i++ ) {
-            if ( $result[$i] =~
-                /^[\s]*([^\s]+)[\s]*([^\s]+)[\s]*([^\s]+)[\s]*$/ )
-            {
-                last
-                  if (  $1 == getValue("PINCEN(1)")
-                    and $2 == getValue("PINCEN(2)")
-                    and $3 == getValue("PINCEN(3)") );
-            }
-        }
-        splice @result, 0, $i;
+        splice @result, 0, 8 + ceil(getValue("MPINZ")/3.0) +  ceil(getValue("MPINY")/3.0) + 2;
 
 		# Maximale Energie berechnen
 		my @sorted = map {[$_->[1], $_->[2]]} 
@@ -410,7 +395,8 @@ sub rewriteFiles {
 
             close $outputHandle;
         }
-# Falls keine Pinhole angegeben ist, einfach die Datei rausschreiben
+
+		# Falls keine Pinhole angegeben ist, einfach die Datei rausschreiben
         elsif($flagWriteSpectrum == 1) {
             open( $outputHandle, ">", "$RESULT_DIR/${SUFFIX}spectrum.dat" )
               or die(
