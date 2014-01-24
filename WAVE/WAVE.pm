@@ -54,6 +54,7 @@ use strict;
 use warnings;
 use POSIX;
 use WAVE::waveIn;
+require "WAVE/waveSub.pl";
 
 # use PDL::IO::Misc;
 
@@ -90,6 +91,7 @@ our $USER_TEXT = "";
 # Flags, ob Daten geschrieben werden (auf 0 setzen in Scriptmodus)
 our $flagWriteTrajectory = 1;
 our $flagWriteSpectrum = 1;
+our $flagWriteLog = 1;
 
 # ------------------------------------------------------------ #
 # Funktion setValue(key, value)
@@ -212,6 +214,9 @@ sub prepareFolders {
             symlink "$MAGNET_FILE", "$TEMP_DIR/bmap.dat"
               or die
 "(EE)\t (SUFFIX $SUFFIX) Konnte $MAGNET_FILE auf $TEMP_DIR/bmap.dat nicht linken: $!. Abbruch.";
+
+			setMagnetMode("file");
+			
         }
     }
 }
@@ -290,6 +295,11 @@ sub calc {
 			unlink "$RESULT_DIR/log/waveError_$pid.log";
 			$date = localtime();
 			print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) beendet ohne Fehler: $date \n";
+
+			if($flagWriteLog != 1) {
+				close $logHandle;
+				unlink "$RESULT_DIR/log/waveLog_$pid.log";
+			}
 		}
 	
 	}
@@ -310,9 +320,10 @@ sub rewriteFiles {
         $filename =~ /[\s]*'(.*)'.*/;
         $filename = $1;
 
-        
+		# TODO
+		my @lines = `tail -n4 \"$TEMP_DIR/$filename\"`;
 
-		my ($x, $y, $z, undef) = split /[\s]+/, `tail -n1 \"$RESULT_DIR/${SUFFIX}trajectory.dat\"`;
+		my ($x, $y, $z, undef) = split /[\s]+/, $lines[0];
 		our $resultEndposition = [$x, $y, $z];
 
 		if($flagWriteTrajectory == 1) {
@@ -328,7 +339,7 @@ sub rewriteFiles {
 	"#\n# Spalten\n# x-Position (m)\n# y-Position (m)\n# z-Position(m)\n# B-Feld in x-Richtung am Teilchenpunkt (T)\n# B-Feld in y-Richtung (T)\n# B-Feld in z-Richtung (T)\n\n";
 
 			# TODO: Besser machen?
-			print $outputHandle system "cat \"$TEMP_DIR/$filename\" | awk '{ if (NR % 4 == 3 && NR > 1) { ORS = \" \"; print \$2, \$3, \$1; } else if (NR % 4 == 1 && NR > 1) { ORS = \"\\n\"; print \$2, \$3, \$1; } }'";
+			print $outputHandle `cat \"$TEMP_DIR/$filename\" | awk '{ if (NR % 4 == 3 && NR > 1) { ORS = \" \"; print \$2, \$3, \$1; } else if (NR % 4 == 1 && NR > 1) { ORS = \"\\n\"; print \$2, \$3, \$1; } }'`;
 
 			close $outputHandle;
 
@@ -359,6 +370,7 @@ sub rewriteFiles {
 		
 		my $maximum = $sorted[0];
 		our $resultMaximumEnergy = $maximum->[0];
+		our $resultMaximumIntensity = $maximum->[1];
 
 		my $outputHandle;
 
@@ -424,17 +436,5 @@ sub rewriteFiles {
 
 
 }
-
-# ------------------------------------------------------------ #
-# Die genannten Funktionen exportieren:
-use Exporter;
-our @ISA = qw(Exporter);
-
-# Exportieren der Funktionen und Variablen
-our @EXPORT =
-  qw( setValue getValue RESULT_DIR WORKING_DIR prepareFolders calc SUFFIX USER_TEXT 
-	resultMaximumEnergy resultEndposition
-	flagWriteSpectrum flagWriteTrajectory
-);
 
 return 1;

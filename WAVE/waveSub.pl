@@ -1,4 +1,3 @@
-# TODO: Koordinaten ueberpruefen
 # Verschiedene Funktionen zum Setzen von WAVE-Input Variablen
 
 use strict;
@@ -6,17 +5,17 @@ use warnings;
 
 sub setStartposition {
     my ( $x, $y, $z ) = @_;
-    WAVE::setValue( "XSTART", $x );
-    WAVE::setValue( "YSTART", $y );
-    WAVE::setValue( "ZSTART", $z );
+    WAVE::setValue( "XSTART", $z );
+    WAVE::setValue( "YSTART", $x );
+    WAVE::setValue( "ZSTART", $y );
 }
 
 sub setEndposition {
-    my ($x) = @_;
-    WAVE::setValue( "XSTOP", $x );
+    my ($z) = @_;
+    WAVE::setValue( "XSTOP", $z );
 }
 
-sub setNoEndposition {
+sub unsetEndposition {
     WAVE::setValue( "XSTOP", 9999 );
 }
 
@@ -69,5 +68,61 @@ sub setMode {
 		die("(EE)\t Konnte Mode nicht in $mode ändern, da dieser Modus nicht vorhanden ist! Abbruch.");
 	}
 }
+
+sub setCalcSpec {
+	WAVE::setValue("ISPEC", 1);
+}
+
+sub unsetCalcSpec {
+	WAVE::setValue("ISPEC", 0);
+}
+
+# TODO: es gibt noch viel mehr Modi!!!
+sub setMagnetMode {
+    my ($mode) = @_;
+
+	WAVE::setValue("IBSUPER", 0);
+	WAVE::setValue("KBEXTERN", 0);
+	WAVE::setValue("KBFELD", 0);
+	WAVE::setValue("IBGAUSS", 0);
+	WAVE::setValue("KMAGSEQ", 0);
+	WAVE::setValue("KMAGCOR", 1);
+	WAVE::setValue("IMGSQF", 0);
+	WAVE::setValue("KHALBA", 0);
+	WAVE::setValue("KHALBASY", 0);
+	WAVE::setValue("KUCROSS", 0);
+	WAVE::setValue("KELLIP", 0);
+	WAVE::setValue("KELLANA", 0);
+	WAVE::setValue("KBREC", 0);
+	WAVE::setValue("KBPOLYMAG", 0);
+	WAVE::setValue("IRBTAB", 0);
+	WAVE::setValue("IRBTABZY", 0);
+	WAVE::setValue("IRFILB0", 0);
+	WAVE::setValue("IRFILF", 0);
+	WAVE::setValue("KBAMWLS", 0);
+	WAVE::setValue("KBPOLYH", 0);
+	WAVE::setValue("KBPOLY3D", 0);
+	WAVE::setValue("KBPOLY2DH", 0);
+	WAVE::setValue("KBPHARM", 0);
+	WAVE::setValue("IRFILP", 0);
+	WAVE::setValue("IBHELM", 0);
+	WAVE::setValue("KBGENESIS", 0);
+
+    if ( lc $mode eq "file" ) {
+		WAVE::setValue("IRFILB0", -6);
+	}
+	elsif ( lc $mode eq "fileLinear" ) {
+		WAVE::setValue("IRFILB0", 6);
+	}
+	elsif ( lc $mode eq "halbach" ) {
+		WAVE::setValue("KHALBA", -1);
+	}
+
+
+	else {
+		die("(EE)\t Konnte Magnet-Mode nicht in $mode ändern, da dieser Modus nicht vorhanden ist! Abbruch.");
+	}
+}
+
 
 return 1;
