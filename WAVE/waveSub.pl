@@ -10,6 +10,13 @@ sub setStartposition {
     WAVE::setValue( "ZSTART", $y );
 }
 
+sub setStartvelocity {
+    my ( $x, $y, $z ) = @_;
+    WAVE::setValue( "VXIN", $z );
+    WAVE::setValue( "VYIN", $x );
+    WAVE::setValue( "VZIN", $y );
+}
+
 sub setEndposition {
     my ($z) = @_;
     WAVE::setValue( "XSTOP", $z );
