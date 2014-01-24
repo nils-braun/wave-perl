@@ -305,27 +305,35 @@ sub rewriteFiles {
 
     # Daten sichern
     # Trajektorien wenn IWFILT0 != 0, sichere FILETR
-    if ( getValue("IWFILT0") != 0 && $flagWriteTrajectory == 1) {
+    if ( getValue("IWFILT0") != 0) {
         my $filename = getValue("FILETR");
         $filename =~ /[\s]*'(.*)'.*/;
         $filename = $1;
 
-        open( my $outputHandle, ">", "$RESULT_DIR/${SUFFIX}trajectory.dat" )
-          or die(
-"(EE)\t Konnte die Datei $RESULT_DIR/${SUFFIX}trajectory.dat nicht öffnen: $!. Abbruch."
-          );
-        print $outputHandle getHeader(
-            "trajectory.dat - Trajektorie und Magnetfeld");
-        print $outputHandle
-"#\n# Spalten\n# x-Position (m)\n# y-Position (m)\n# z-Position(m)\n# B-Feld in x-Richtung am Teilchenpunkt (T)\n# B-Feld in y-Richtung (T)\n# B-Feld in z-Richtung (T)\n\n";
-        close $outputHandle;
-
-		# TODO: Besser machen?
-        system
-"cat \"$TEMP_DIR/$filename\" | awk '{ if (NR % 4 == 3 && NR > 1) { ORS = \" \"; print \$2, \$3, \$1; } else if (NR % 4 == 1 && NR > 1) { ORS = \"\\n\"; print \$2, \$3, \$1; } }' >> \"$RESULT_DIR/${SUFFIX}trajectory.dat\"";
+        
 
 		my ($x, $y, $z, undef) = split /[\s]+/, `tail -n1 \"$RESULT_DIR/${SUFFIX}trajectory.dat\"`;
 		our $resultEndposition = [$x, $y, $z];
+
+		if($flagWriteTrajectory == 1) {
+
+			open( my $outputHandle, ">", "$RESULT_DIR/${SUFFIX}trajectory.dat" )
+				or die(
+		"(EE)\t Konnte die Datei $RESULT_DIR/${SUFFIX}trajectory.dat nicht öffnen: $!. Abbruch."
+				);
+
+			print $outputHandle getHeader(
+				"trajectory.dat - Trajektorie und Magnetfeld");
+			print $outputHandle
+	"#\n# Spalten\n# x-Position (m)\n# y-Position (m)\n# z-Position(m)\n# B-Feld in x-Richtung am Teilchenpunkt (T)\n# B-Feld in y-Richtung (T)\n# B-Feld in z-Richtung (T)\n\n";
+
+			# TODO: Besser machen?
+			print $outputHandle system "cat \"$TEMP_DIR/$filename\" | awk '{ if (NR % 4 == 3 && NR > 1) { ORS = \" \"; print \$2, \$3, \$1; } else if (NR % 4 == 1 && NR > 1) { ORS = \"\\n\"; print \$2, \$3, \$1; } }'";
+
+			close $outputHandle;
+
+		}
+		
     }
 
     # Spektren wenn ISPEC != 0, sichere FILESP0
@@ -412,6 +420,9 @@ sub rewriteFiles {
             close $outputHandle;
         }
     }
+
+
+
 }
 
 # ------------------------------------------------------------ #
