@@ -61,6 +61,7 @@ require "WAVE/waveSub.pl";
 my $DEBUG = 0;
 
 use File::Temp qw(tempdir);
+use File::Path qw(remove_tree);
 use IPC::Open3;
 
 # Konstanten
@@ -92,6 +93,7 @@ our $USER_TEXT = "";
 our $flagWriteTrajectory = 1;
 our $flagWriteSpectrum = 1;
 our $flagWriteLog = 1;
+our $flagDeleteTempDir = 0;
 
 # ------------------------------------------------------------ #
 # Funktion setValue(key, value)
@@ -186,7 +188,7 @@ sub prepareFolders {
 	}
 
     if ( "$WORKING_DIR" eq "" ) {
-        $TEMP_DIR = tempdir( "wave.XXXXX", TMPDIR => 1, CLEANUP => 1 );
+        $TEMP_DIR = tempdir( "wave.XXXXX", TMPDIR => 1);
         print
 "(WW)\t (SUFFIX $SUFFIX) \$WORKING_DIR nicht gesetzt. Benutze temporären Order $TEMP_DIR.\n";
     }
@@ -305,6 +307,11 @@ sub calc {
 	}
 	
 	rewriteFiles();
+	
+	# Temporären Ordner entfernen
+	if ($flagDeleteTempDir == 1) {
+		remove_tree("$TEMP_DIR");
+	}
 }
 
 # ------------------------------------------------------------#
