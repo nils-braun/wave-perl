@@ -191,6 +191,7 @@ sub prepareFolders {
         $TEMP_DIR = tempdir( "wave.XXXXX", TMPDIR => 1);
         print
 "(WW)\t (SUFFIX $SUFFIX) \$WORKING_DIR is not set. using temporary folder $TEMP_DIR.\n";
+		print
 "(WW)\t (SUFFIX $SUFFIX) Have you checked \$flagDeleteTempDir?\n";
     }
     elsif ( !-d "$WORKING_DIR" ) {
