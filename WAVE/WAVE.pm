@@ -111,7 +111,7 @@ sub setValue {
     }
     else {
         die(
-"(EE)\t Konnte $key nicht in wave.in ändern, da diese Variable nicht vorhanden ist! Abbruch."
+"(EE)\t (SUFFIX $SUFFIX) Can't change $key in wave.in, because key does not exist! Abort."
         );
     }
 }
@@ -131,7 +131,7 @@ sub getValue {
     }
     else {
         die(
-"(EE)\t Konnte $key nicht in wave.in abrufen, da diese Variable nicht vorhanden ist! Abbruch."
+"(EE)\t (SUFFIX $SUFFIX) Can't get $key from wave.in, because key does not exist! Abort."
         );
     }
 }
@@ -143,7 +143,7 @@ sub getValue {
 sub writeWaveIn {
 
     open( my $waveconfigFileHandle, ">", "$TEMP_DIR/wave.in" )
-      or die "(EE)\t Kann Datei $TEMP_DIR/wave.in nicht öffnen: $!. Abbruch.";
+      or die "(EE)\t Can't open file $TEMP_DIR/wave.in: $!. Abort.";
 
     foreach (@waveIn) {
         if ( $_ =~ /^[\s]*([\w|\(\)]+)=[\s]*([^!]*)(.*)$/ ) {
@@ -166,35 +166,36 @@ sub writeWaveIn {
 sub prepareFolders {
     if ( !-e "$WAVE_EXE" ) {
         die(
-"(EE)\t (SUFFIX $SUFFIX) Konnte wave.exe unter $WAVE_EXE nicht finden oder sie ist nicht ausführbar: $!. Abbruch."
+"(EE)\t (SUFFIX $SUFFIX) Can't find wave.exe in $WAVE_EXE or it is not executable: $!. Abort."
         );
     }
 
     if ( !-d "$RESULT_DIR" ) {
         print(
-"(WW)\t (SUFFIX $SUFFIX)Konnte $RESULT_DIR nicht finden. Ordner wird erstellt.\n"
+"(WW)\t (SUFFIX $SUFFIX) Can't find $RESULT_DIR. Folder will be created.\n"
         );
         mkdir "$RESULT_DIR"
           or die(
-            "(EE)\t Konnte den Ordner $RESULT_DIR nicht erstellen: $!. Abbruch."
+            "(EE)\t Can't create folder $RESULT_DIR: $!. Abort."
           );
     }
 
 	if ( !-d "$RESULT_DIR/log" ) {
 		mkdir "$RESULT_DIR/log"
 			or die(
-			"(EE)\t Konnte den Ordner $RESULT_DIR/log nicht erstellen: $!. Abbruch."
+			"(EE)\t Can't create folder $RESULT_DIR/log: $!. Abort."
 			);
 	}
 
     if ( "$WORKING_DIR" eq "" ) {
         $TEMP_DIR = tempdir( "wave.XXXXX", TMPDIR => 1);
         print
-"(WW)\t (SUFFIX $SUFFIX) \$WORKING_DIR nicht gesetzt. Benutze temporären Order $TEMP_DIR.\n";
+"(WW)\t (SUFFIX $SUFFIX) \$WORKING_DIR is not set. using temporary folder $TEMP_DIR.\n";
+"(WW)\t (SUFFIX $SUFFIX) Have you checked \$flagDeleteTempDir?\n";
     }
     elsif ( !-d "$WORKING_DIR" ) {
         die(
-"(WW)\t (SUFFIX $SUFFIX) Konnte $WORKING_DIR nicht finden, obwohl es angegeben ist: $!. Abbruch."
+"(WW)\t (SUFFIX $SUFFIX) Can't find $WORKING_DIR, although it is set: $!. Abort."
         );
     }
     else {
@@ -206,7 +207,7 @@ sub prepareFolders {
     if ( !"$MAGNET_FILE" eq "" ) {
         if ( !-f "$MAGNET_FILE" ) {
             die(
-"(WW)\t (SUFFIX $SUFFIX) Konnte $MAGNET_FILE nicht finden, obwohl es angegeben ist: $!. Abbruch."
+"(WW)\t (SUFFIX $SUFFIX) Can't find  $MAGNET_FILE, although it is set: $!. Abort."
             );
         }
         else {
@@ -215,7 +216,7 @@ sub prepareFolders {
 			}
             symlink "$MAGNET_FILE", "$TEMP_DIR/bmap.dat"
               or die
-"(EE)\t (SUFFIX $SUFFIX) Konnte $MAGNET_FILE auf $TEMP_DIR/bmap.dat nicht linken: $!. Abbruch.";
+"(EE)\t (SUFFIX $SUFFIX) Can't link $MAGNET_FILE to $TEMP_DIR/bmap.dat: $!. Abort.";
 
 			setMagnetMode("file");
 			
@@ -233,9 +234,9 @@ sub prepareFolders {
 sub getHeader {
     my ($title) = @_;
     return
-        "# Datei $title\n# Erstellt durch WAVE am "
+        "# File $title\n# Created by WAVE and WAVE.pm on "
       . localtime()
-      . "\n# Ausgeführt in $TEMP_DIR\n# Daten gespeichert in $RESULT_DIR\n#\n# Magnet-Datei (falls vorhanden): $MAGNET_FILE\n# Suffix $SUFFIX\n# $USER_TEXT\n\n";
+      . "\n# Executed in $TEMP_DIR\n# Files saved in $RESULT_DIR\n#\n# Magnetfile (if set): $MAGNET_FILE\n# Suffix $SUFFIX\n# $USER_TEXT\n\n";
 }
 
 # ------------------------------------------------------------#
@@ -261,21 +262,21 @@ sub calc {
 
         $ENV{ROOTSYS} = "/usr/share/root";
         my $pid = open3( $stdin, $stdout, $stderr, "$WAVE_EXE" )
-          or die("(EE)\t Fehler bei Ausführen von wave: $!. Abbruch.");
+          or die("(EE)\t (SUFFIX $SUFFIX) Error when executing wave.exe: $!. Abort.");
 
         chdir($RESULT_DIR);
         open( my $errorLogHandle, ">", "$RESULT_DIR/log/waveError_$pid.log" )
           or die(
-"(EE)\t Konnte den Errorlog $RESULT_DIR/log/waveError_$pid.log nicht anlegen; $!. Abbruch."
+"(EE)\t (SUFFIX $SUFFIX) Cant create error log $RESULT_DIR/log/waveError_$pid.log: $!. Abort."
           );
         open( my $logHandle, ">", "$RESULT_DIR/log/waveLog_$pid.log" )
           or die(
-"(EE)\t Konnte den Log $RESULT_DIR/log/waveLog_$pid.log nicht anlegen; $!. Abbruch."
+"(EE)\t (SUFFIX $SUFFIX) Can't create log $RESULT_DIR/log/waveLog_$pid.log: $!. Abort."
           );
 
 
 		my $date = localtime();
-		print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) gestartet: $date \n";
+		print "(LL)\t (SUFFIX $SUFFIX) WAVE (PID $pid) started: $date \n";
 
 		waitpid( $pid, 0 );
         my $waveExitStatus = $? >> 8;
@@ -290,13 +291,13 @@ sub calc {
 				my @stderrText = <$stderr>;
 				print $errorLogHandle @stderrText;
 			}
-			die("(EE)\t WAVE (PID $pid, SUFFIX $SUFFIX) wurde mit einem Fehler beendet. Fehlercode $waveExitStatus. Weitere Informationen in der log-Datei $RESULT_DIR/waveError_$pid.log. Abbruch.")
+			die("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the lod-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log. Abort.")
 		}
 		else {
 			close $errorLogHandle;
 			unlink "$RESULT_DIR/log/waveError_$pid.log";
 			$date = localtime();
-			print "(LL)\t WAVE (PID $pid, SUFFIX $SUFFIX) beendet ohne Fehler: $date \n";
+			print "(LL)\t (SUFFIX $SUFFIX) WAVE (PID $pid) finished without error: $date \n";
 
 			if($flagWriteLog != 1) {
 				close $logHandle;
@@ -330,20 +331,21 @@ sub rewriteFiles {
 		# TODO
 		my @lines = `tail -n4 \"$TEMP_DIR/$filename\"`;
 
-		my ($x, $y, $z, undef) = split /[\s]+/, $lines[0];
-		our $resultEndposition = [$x, $y, $z];
+		my (undef, $z, $x, $y, undef) = split /[\s]+/, $lines[0];
+
+		our @resultEndposition = ($x, $y, $z);
 
 		if($flagWriteTrajectory == 1) {
 
 			open( my $outputHandle, ">", "$RESULT_DIR/${SUFFIX}trajectory.dat" )
 				or die(
-		"(EE)\t Konnte die Datei $RESULT_DIR/${SUFFIX}trajectory.dat nicht öffnen: $!. Abbruch."
+		"(EE)\t (SUFFIX $SUFFIX) Can't open $RESULT_DIR/${SUFFIX}trajectory.dat: $!. Abort."
 				);
 
 			print $outputHandle getHeader(
-				"trajectory.dat - Trajektorie und Magnetfeld");
+				"trajectory.dat - trajectory and magnetic field");
 			print $outputHandle
-	"#\n# Spalten\n# x-Position (m)\n# y-Position (m)\n# z-Position(m)\n# B-Feld in x-Richtung am Teilchenpunkt (T)\n# B-Feld in y-Richtung (T)\n# B-Feld in z-Richtung (T)\n\n";
+	"#\n# Columns\n# x-position (m)\n# y-position (m)\n# z-position(m)\n# B-field in x-direction at the position of the particle (T)\n# B-field in y-direction (T)\n# B-field in z-direction (T)\n\n";
 
 			# TODO: Besser machen?
 			print $outputHandle `cat \"$TEMP_DIR/$filename\" | awk '{ if (NR % 4 == 3 && NR > 1) { ORS = \" \"; print \$2, \$3, \$1; } else if (NR % 4 == 1 && NR > 1) { ORS = \"\\n\"; print \$2, \$3, \$1; } }'`;
@@ -363,7 +365,7 @@ sub rewriteFiles {
 
         open( my $resultHandle, "<", "$TEMP_DIR/$filename" )
           or die(
-"(EE)\t Konnte die Datei $TEMP_DIR/$filename nicht öffnen: $!. Abbruch."
+"(EE)\t (SUFFIX $SUFFIX) Can't open $TEMP_DIR/$filename: $!. Abort."
           );
         my @result = <$resultHandle>;
 
@@ -388,13 +390,13 @@ sub rewriteFiles {
             open( $outputHandle,
                 ">", "$RESULT_DIR/${SUFFIX}angular_distribution.dat" )
               or die(
-"(EE)\t Konnte die Datei $RESULT_DIR/${SUFFIX}angular_distribution.dat nicht öffnen: $!. Abbruch."
+"(EE)\t (SUFFIX $SUFFIX) Can't open $RESULT_DIR/${SUFFIX}angular_distribution.dat: $!. Abort."
               );
             print $outputHandle getHeader(
-"angular_distribution.dat - Spektrum/Intensitäten als Winkelverteilung"
+"angular_distribution.dat - spectrum/intensity as angular distributaion"
             );
             print $outputHandle
-"#\n#Für die Winkelverteilung wird über alle Strahlungsenergien und möglicherweise Quellen summiert\n# Spalten\n# x-Position (m)\n# y-Position (m)\n# Intensität (Photonen/s/mm^2/BW)\n\n";
+"#\n#For the angular ditribuation, all radiation energies and all sources are summed up.\n# Columns\n# x-position (m)\n# y-position (m)\n# Intensity (Photons/s/mm^2/BW)\n\n";
 
             my @lines = @result;
 
@@ -427,13 +429,13 @@ sub rewriteFiles {
         elsif($flagWriteSpectrum == 1) {
             open( $outputHandle, ">", "$RESULT_DIR/${SUFFIX}spectrum.dat" )
               or die(
-"(EE)\t Konnte die Datei $RESULT_DIR/${SUFFIX}spectrum.dat nicht öffnen: $!. Abbruch."
+"(EE)\t Can't open $RESULT_DIR/${SUFFIX}spectrum.dat: $!. Abort."
               );
 			
             print $outputHandle getHeader(
-                "spectrum.dat - Spektrum/Intensitäten");
+                "spectrum.dat - spectrum/intensity");
             print $outputHandle
-"#\n# Spalten\n# Strahlungsenergie (eV) \n# Intensität (Photonen/s/mm^2/BW)\n\n";
+"#\n# Columns\n# Energy of radiation (eV) \n# Intensity (Photons/s/mm^2/BW)\n\n";
 
             print $outputHandle @result[1..@result-1];
             close $outputHandle;
