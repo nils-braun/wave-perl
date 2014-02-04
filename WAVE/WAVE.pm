@@ -63,7 +63,7 @@ require "WAVE/waveSub.pl";
 my $DEBUG = 0;
 
 use File::Temp qw(tempdir);
-use File::Path qw(remove_tree);
+use File::Path qw(remove_tree make_path);
 use IPC::Open3;
 
 # Konstanten
