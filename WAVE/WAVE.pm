@@ -238,7 +238,7 @@ sub prepareFolders {
 			}
 		
 			open(my $particleFileHandle, ">", "$TEMP_DIR/wave_phasespace.dat") or die "(EE)\t (SUFFIX $SUFFIX) Can't create $TEMP_DIR/wave_phasespace.dat: $!. Abort";
-			print $particleFileHandle, $particleData;
+			print $particleFileHandle $particleData;
 			close($particleData);
 		}
 		else {
