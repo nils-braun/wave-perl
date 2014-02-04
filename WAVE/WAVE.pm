@@ -233,7 +233,7 @@ sub prepareFolders {
 	if (getValue("IBUNCH") != 0) {
 		if($flagOwnParticleFile == 0) {
 		
-			if($particleData == "") {
+			if($particleData eq "") {
 				die("(EE)\t (SUFFIX $SUFFIX) Have you set particle data properly? Please use make_particles. Abort.");
 			}
 		
