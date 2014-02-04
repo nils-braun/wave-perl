@@ -230,7 +230,7 @@ sub prepareFolders {
     }
 
 	# Teilchen werden gefordert
-	if (getValue("IBUNCH") != 0) {
+	if (getValue("IBUNCH") != 0 && getValue("IUBUNCH") == 3) {
 		if($flagOwnParticleFile == 0) {
 		
 			if($particleData eq "") {
