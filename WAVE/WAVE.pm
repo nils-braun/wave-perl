@@ -181,7 +181,7 @@ sub prepareFolders {
         print(
 "(WW)\t (SUFFIX $SUFFIX) Can't find $RESULT_DIR. Folder will be created.\n"
         );
-        mkpath("$RESULT_DIR")
+        make_path("$RESULT_DIR")
           or die(
             "(EE)\t Can't create folder $RESULT_DIR: $!. Abort."
           );
