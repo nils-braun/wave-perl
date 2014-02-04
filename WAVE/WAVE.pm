@@ -491,6 +491,8 @@ sub rewriteFiles {
 sub make_particles
 {
 	my ($XSTART, $YSTART, $ENERGY, $TEILCHENZAHL, $TWISS) = @_;
+	
+	$particleData = "";
 
 	# Anfangswerte und Verteilungen
 	#---------------------------------------
@@ -522,13 +524,6 @@ sub make_particles
 	my $divx = sqrt($epsx/2*(($betax+$gammax)+sqrt(($betax+$gammax)**2-4))); 		# Divergenz der Quelle
 	my $divy = sqrt($epsy/2*(($betay+$gammay)+sqrt(($betay+$gammay)**2-4))); 		# Divergenz der Quelle
 
-
-	#Dateinamen und Öffnen der Datei
-	#--------------------------------------
-	open(my $twissFileHandle,  ">", "$TEMP_DIR/wave_phasespace.dat")
-              or die(
-"(EE)\t Can't open $TEMP_DIR/wave_phasespace.dat: $!. Abort."
-              );
 	#--------------------------------------
 
 	# Berechnen der Anfangsverteilung
@@ -552,11 +547,10 @@ sub make_particles
 		my $energy_gamma = 1000 * $ENERGY / 0.5109989;
 		my $xereal = $xe + $YSTART;
 		my $zstart = $XSTART;
-		print $twissFileHandle ("$energy_gamma 0 $zstart $xereal $ye $dxe $dye \n");
+		$particleData = $particleData . "$energy_gamma 0 $zstart $xereal $ye $dxe $dye \n";
 
 	}
 
-	close $twissFileHandle;
 }
 
 
