@@ -54,6 +54,8 @@ use strict;
 use warnings;
 use POSIX;
 use WAVE::waveIn;
+use Math::Trig;
+
 require "WAVE/waveSub.pl";
 
 # use PDL::IO::Misc;
@@ -94,6 +96,10 @@ our $flagWriteTrajectory = 1;
 our $flagWriteSpectrum = 1;
 our $flagWriteLog = 1;
 our $flagDeleteTempDir = 0;
+our $flagOwnParticleFile = 0; # TODO
+
+# Inhalt der Teilchendatei, welcher entweder gesetzt wird oder neu kreiert
+my $particleData = "";
 
 # ------------------------------------------------------------ #
 # Funktion setValue(key, value)
@@ -164,6 +170,7 @@ sub writeWaveIn {
 # wenn nötig erstellt
 
 sub prepareFolders {
+
     if ( !-e "$WAVE_EXE" ) {
         die(
 "(EE)\t (SUFFIX $SUFFIX) Can't find wave.exe in $WAVE_EXE or it is not executable: $!. Abort."
@@ -192,23 +199,21 @@ sub prepareFolders {
         print
 "(WW)\t (SUFFIX $SUFFIX) \$WORKING_DIR is not set. using temporary folder $TEMP_DIR.\n";
 		print
-"(WW)\t (SUFFIX $SUFFIX) Have you checked \$flagDeleteTempDir?\n";
+"(LL)\t (SUFFIX $SUFFIX) Have you checked \$flagDeleteTempDir?\n";
     }
     elsif ( !-d "$WORKING_DIR" ) {
         die(
-"(WW)\t (SUFFIX $SUFFIX) Can't find $WORKING_DIR, although it is set: $!. Abort."
+"(EE)\t (SUFFIX $SUFFIX) Can't find $WORKING_DIR, although it is set. Abort."
         );
     }
     else {
         $TEMP_DIR = $WORKING_DIR;
     }
 
-    writeWaveIn();
-
     if ( !"$MAGNET_FILE" eq "" ) {
         if ( !-f "$MAGNET_FILE" ) {
             die(
-"(WW)\t (SUFFIX $SUFFIX) Can't find  $MAGNET_FILE, although it is set: $!. Abort."
+"(EE)\t (SUFFIX $SUFFIX) Can't find  $MAGNET_FILE, although it is set. Abort."
             );
         }
         else {
@@ -217,12 +222,34 @@ sub prepareFolders {
 			}
             symlink "$MAGNET_FILE", "$TEMP_DIR/bmap.dat"
               or die
-"(EE)\t (SUFFIX $SUFFIX) Can't link $MAGNET_FILE to $TEMP_DIR/bmap.dat: $!. Abort.";
+"(EE)\t (SUFFIX $SUFFIX) Can't link $MAGNET_FILE to $TEMP_DIR/bmap.dat. Abort.";
 
 			setMagnetMode("file");
 			
         }
     }
+
+	# Teilchen werden gefordert
+	if (getValue("IBUNCH") != 0) {
+		if($flagOwnParticleFile == 0) {
+		
+			if($particleData == "") {
+				die("(EE)\t (SUFFIX $SUFFIX) Have you set particle data properly? Please use make_particles. Abort.");
+			}
+		
+			open(my $particleFileHandle, ">", "$TEMP_DIR/wave_phasespace.dat") or die "(EE)\t (SUFFIX $SUFFIX) Can't create $TEMP_DIR/wave_phasespace.dat: $!. Abort";
+			print $particleFileHandle, $particleData;
+			close($particleData);
+			print $particleData;
+		}
+		else {
+			# TODO
+		}
+    }
+    
+    writeWaveIn();
+    
+    
 }
 
 # ------------------------------------------------------------#
@@ -463,7 +490,6 @@ sub rewriteFiles {
 
 sub make_particles
 {
-
 	my ($XSTART, $YSTART, $ENERGY, $TEILCHENZAHL, $TWISS) = @_;
 
 	# Anfangswerte und Verteilungen
@@ -499,7 +525,6 @@ sub make_particles
 
 	#Dateinamen und Öffnen der Datei
 	#--------------------------------------
-	my $datverteilung =  ; #Datei für die erzeugte Verteilung
 	open(my $twissFileHandle,  ">", "$TEMP_DIR/wave_phasespace.dat")
               or die(
 "(EE)\t Can't open $TEMP_DIR/wave_phasespace.dat: $!. Abort."
