@@ -489,7 +489,7 @@ sub rewriteFiles {
 
 sub make_particles
 {
-	my ($TWISS) = @_;
+	my $TWISS = @_;
 	
 	$particleData = "";
 
