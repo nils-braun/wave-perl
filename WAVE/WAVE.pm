@@ -484,12 +484,12 @@ sub rewriteFiles {
 #			Ausgabe in Format (gamma dx dy dz dpx/p dpy/p dpz/p)
 
 # Benötigt übergebene Variablen in
-# XSTART, YSTART, ENERGY, TEILCHENZAHL, [BETAX, ALPHAX, BETAY, ALPHAY, EPS]
+# BETAX, ALPHAX, BETAY, ALPHAY, EPSILON
 #-------------------------------------------------------------
 
 sub make_particles
 {
-	my ($XSTART, $YSTART, $ENERGY, $TEILCHENZAHL, $TWISS) = @_;
+	my ($TWISS) = @_;
 	
 	$particleData = "";
 
