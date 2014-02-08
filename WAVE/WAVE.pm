@@ -543,7 +543,7 @@ sub make_particles
 		my $dye = sin($phiy)*$y+cos($phiy)*$dy;
 
 		# Format gamma x y z px py pz (wave -> gamma xbunch x y z py pz)
-		my $energy_gamma = 1000 * $ENERGY / 0.5109989;
+		my $energy_gamma = 1000 * getValue("DMYENERGY") / 0.5109989;
 		my $xstart = $xe + getValue("YSTART");
 		my $zstart = getValue("XSTART");
 		my $ystart = $ye;
