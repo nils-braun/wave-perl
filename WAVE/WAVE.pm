@@ -527,7 +527,7 @@ sub make_particles
 
 	# Berechnen der Anfangsverteilung
 	#---------------------------------------
-	for (my $j = 0; $j < $TEILCHENZAHL; $j++) 
+	for (my $j = 0; $j < getValue("NBUNCH"); $j++) 
 	{
 		# transversale Impulse und Positionen
 		my $dx = gaussian_rand()*$divx; # transversaler Impuls aus Divergenz und longitudinalem Impuls
@@ -544,9 +544,10 @@ sub make_particles
 
 		# Format gamma x y z px py pz (wave -> gamma xbunch x y z py pz)
 		my $energy_gamma = 1000 * $ENERGY / 0.5109989;
-		my $xereal = $xe + $YSTART;
-		my $zstart = $XSTART;
-		$particleData = $particleData . "$energy_gamma 0 $zstart $xereal $ye $dxe $dye \n";
+		my $xstart = $xe + getValue("YSTART");
+		my $zstart = getValue("XSTART");
+		my $ystart = $ye;
+		$particleData = $particleData . "$energy_gamma 0 $zstart $xstart $ystart $dxe $dye \n";
 
 	}
 
