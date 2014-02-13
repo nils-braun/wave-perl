@@ -97,6 +97,7 @@ our $flagWriteSpectrum = 1;
 our $flagWriteLog = 1;
 our $flagDeleteTempDir = 0;
 our $flagOwnParticleFile = 0; # TODO
+our $flagExitOnWaveError = 1;
 
 # Inhalt der Teilchendatei, welcher entweder gesetzt wird oder neu kreiert
 my $particleData = "";
@@ -302,10 +303,10 @@ sub calc {
           );
 
 
-		my $date = localtime();
-		print "(LL)\t (SUFFIX $SUFFIX) WAVE (PID $pid) started: $date \n";
+	my $date = localtime();
+	print "(LL)\t (SUFFIX $SUFFIX) WAVE (PID $pid) started: $date \n";
 
-		waitpid( $pid, 0 );
+	waitpid( $pid, 0 );
         my $waveExitStatus = $? >> 8;
 
         my @stdourText = <$stdout>;
@@ -318,7 +319,12 @@ sub calc {
 				my @stderrText = <$stderr>;
 				print $errorLogHandle @stderrText;
 			}
-			die("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the lod-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log. Abort.")
+			if($flagExitOnWaveError) {
+				die("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the lod-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log. Abort.")
+			}
+			else {
+				print("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the lod-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log.")
+			}
 		}
 		else {
 			close $errorLogHandle;
@@ -489,18 +495,18 @@ sub rewriteFiles {
 
 sub make_particles
 {
-	my $TWISS = @_;
+	my @TWISS = @_;
 	
 	$particleData = "";
 
 	# Anfangswerte und Verteilungen
 	#---------------------------------------
-	my $alphax = $TWISS->[1];	# AKTIVIERT
-	my $alphay = $TWISS->[3];	# AKTIVIERT
-	my $betax = $TWISS->[0];	# AKTIVIERT
-	my $betay = $TWISS->[2];	# AKTIVIERT
+	my $alphax = $TWISS[1];	# AKTIVIERT
+	my $alphay = $TWISS[3];	# AKTIVIERT
+	my $betax = $TWISS[0];	# AKTIVIERT
+	my $betay = $TWISS[2];	# AKTIVIERT
 
-	my ($epsx, $epsy) = ($TWISS->[4], $TWISS->[4]);
+	my ($epsx, $epsy) = ($TWISS[4], $TWISS[4]);
 	
 	if ($epsx == 0)
 	{
