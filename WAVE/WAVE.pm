@@ -111,16 +111,16 @@ my $particleData = "";
 
 sub setValue {
 
-    my ( $key, $value ) = @_;
+	my ( $key, $value ) = @_;
 
-    if ( exists $waveInArray{"$key"} ) {
-        $waveInArray{"$key"} = "$value";
-    }
-    else {
-        die(
+	if ( exists $waveInArray{"$key"} ) {
+		$waveInArray{"$key"} = "$value";
+	}
+	else {
+		die(
 "(EE)\t (SUFFIX $SUFFIX) Can't change $key in wave.in, because key does not exist! Abort."
-        );
-    }
+		);
+	}
 }
 
 # ------------------------------------------------------------ #
@@ -131,16 +131,16 @@ sub setValue {
 
 sub getValue {
 
-    my ($key) = @_;
+	my ($key) = @_;
 
-    if ( exists $waveInArray{"$key"} ) {
-        return $waveInArray{"$key"};
-    }
-    else {
-        die(
+	if ( exists $waveInArray{"$key"} ) {
+		return $waveInArray{"$key"};
+	}
+	else {
+		die(
 "(EE)\t (SUFFIX $SUFFIX) Can't get $key from wave.in, because key does not exist! Abort."
-        );
-    }
+		);
+	}
 }
 
 # ------------------------------------------------------------ #
@@ -149,19 +149,19 @@ sub getValue {
 
 sub writeWaveIn {
 
-    open( my $waveconfigFileHandle, ">", "$TEMP_DIR/wave.in" )
-      or die "(EE)\t Can't open file $TEMP_DIR/wave.in: $!. Abort.";
+	open( my $waveconfigFileHandle, ">", "$TEMP_DIR/wave.in" )
+	or die "(EE)\t Can't open file $TEMP_DIR/wave.in: $!. Abort.";
 
-    foreach (@waveIn) {
-        if ( $_ =~ /^[\s]*([\w|\(\)]+)=[\s]*([^!]*)(.*)$/ ) {
-            printf $waveconfigFileHandle "\t$1 = %s$3\n", $waveInArray{"$1"};
-        }
-        else {
-            print $waveconfigFileHandle "$_\n";
-        }
-    }
+	foreach (@waveIn) {
+		if ( $_ =~ /^[\s]*([\w|\(\)]+)=[\s]*([^!]*)(.*)$/ ) {
+			printf $waveconfigFileHandle "\t$1 = %s$3\n", $waveInArray{"$1"};
+		}
+		else {
+			print $waveconfigFileHandle "$_\n";
+		}
+	}
 
-    close($waveconfigFileHandle);
+	close($waveconfigFileHandle);
 }
 
 # ------------------------------------------------------------#
@@ -172,21 +172,21 @@ sub writeWaveIn {
 
 sub prepareFolders {
 
-    if ( !-e "$WAVE_EXE" ) {
-        die(
+	if ( !-e "$WAVE_EXE" ) {
+		die(
 "(EE)\t (SUFFIX $SUFFIX) Can't find wave.exe in $WAVE_EXE or it is not executable: $!. Abort."
-        );
-    }
+		);
+	}
 
-    if ( !-d "$RESULT_DIR" ) {
-        print(
+	if ( !-d "$RESULT_DIR" ) {
+		print(
 "(WW)\t (SUFFIX $SUFFIX) Can't find $RESULT_DIR. Folder will be created.\n"
-        );
-        make_path("$RESULT_DIR")
-          or die(
-            "(EE)\t Can't create folder $RESULT_DIR: $!. Abort."
-          );
-    }
+		);
+		make_path("$RESULT_DIR")
+		or die(
+			"(EE)\t Can't create folder $RESULT_DIR: $!. Abort."
+		);
+	}
 
 	if ( !-d "$RESULT_DIR/log" ) {
 		mkdir "$RESULT_DIR/log"
@@ -195,40 +195,40 @@ sub prepareFolders {
 			);
 	}
 
-    if ( "$WORKING_DIR" eq "" ) {
-        $TEMP_DIR = tempdir( "wave.XXXXX", TMPDIR => 1);
-        print
+	if ( "$WORKING_DIR" eq "" ) {
+		$TEMP_DIR = tempdir( "wave.XXXXX", TMPDIR => 1);
+		print
 "(WW)\t (SUFFIX $SUFFIX) \$WORKING_DIR is not set. using temporary folder $TEMP_DIR.\n";
 		print
 "(LL)\t (SUFFIX $SUFFIX) Have you checked \$flagDeleteTempDir?\n";
-    }
-    elsif ( !-d "$WORKING_DIR" ) {
-        die(
+	}
+	elsif ( !-d "$WORKING_DIR" ) {
+		die(
 "(EE)\t (SUFFIX $SUFFIX) Can't find $WORKING_DIR, although it is set. Abort."
-        );
-    }
-    else {
-        $TEMP_DIR = $WORKING_DIR;
-    }
+		);
+	}
+	else {
+		$TEMP_DIR = $WORKING_DIR;
+	}
 
-    if ( !"$MAGNET_FILE" eq "" ) {
-        if ( !-f "$MAGNET_FILE" ) {
-            die(
+	if ( !"$MAGNET_FILE" eq "" ) {
+		if ( !-f "$MAGNET_FILE" ) {
+			die(
 "(EE)\t (SUFFIX $SUFFIX) Can't find  $MAGNET_FILE, although it is set. Abort."
-            );
-        }
-        else {
+			);
+		}
+		else {
 			if ( -f "$TEMP_DIR/bmap.dat" ) {
 				unlink "$TEMP_DIR/bmap.dat";
 			}
-            symlink "$MAGNET_FILE", "$TEMP_DIR/bmap.dat"
-              or die
+			symlink "$MAGNET_FILE", "$TEMP_DIR/bmap.dat"
+			or die
 "(EE)\t (SUFFIX $SUFFIX) Can't link $MAGNET_FILE to $TEMP_DIR/bmap.dat. Abort.";
 
 			setMagnetMode("file");
 			
-        }
-    }
+		}
+	}
 
 	# Teilchen werden gefordert
 	if (getValue("IBUNCH") != 0 && getValue("IUBUNCH") == 3) {
@@ -244,12 +244,13 @@ sub prepareFolders {
 		}
 		else {
 			# TODO
+			die("Not yet implemented.");
 		}
-    }
-    
-    writeWaveIn();
-    
-    
+	}
+	
+	writeWaveIn();
+	
+	
 }
 
 # ------------------------------------------------------------#
@@ -260,11 +261,11 @@ sub prepareFolders {
 # Parameter:
 # title: Ein zustätzlicher title, welcher eingebaut wird
 sub getHeader {
-    my ($title) = @_;
-    return
-        "# File $title\n# Created by WAVE and WAVE.pm on "
-      . localtime()
-      . "\n# Executed in $TEMP_DIR\n# Files saved in $RESULT_DIR\n#\n# Magnetfile (if set): $MAGNET_FILE\n# Suffix $SUFFIX\n# $USER_TEXT\n\n";
+	my ($title) = @_;
+	return
+		"# File $title\n# Created by WAVE and WAVE.pm on "
+	. localtime()
+	. "\n# Executed in $TEMP_DIR\n# Files saved in $RESULT_DIR\n#\n# Magnetfile (if set): $MAGNET_FILE\n# Suffix $SUFFIX\n# $USER_TEXT\n\n";
 }
 
 # ------------------------------------------------------------#
@@ -274,44 +275,44 @@ sub getHeader {
 
 sub calc {
 
-    # Ordner ueberpruefen
-    prepareFolders();
+	# Ordner ueberpruefen
+	prepareFolders();
 
-    # WAVE ausführen
-    if ( !$DEBUG ) {
+	# WAVE ausführen
+	if ( !$DEBUG ) {
 
-        # In TEMP_DIR arbeiten
-        chdir($TEMP_DIR);
+		# In TEMP_DIR arbeiten
+		chdir($TEMP_DIR);
 
-        # WAVE ausfuehren und Ausgaben sichern
-        my ( $stdout, $stderr, $stdin );
-        use Symbol 'gensym';
-        $stderr = gensym;
+		# WAVE ausfuehren und Ausgaben sichern
+		my ( $stdout, $stderr, $stdin );
+		use Symbol 'gensym';
+		$stderr = gensym;
 
-        $ENV{ROOTSYS} = "/usr/share/root";
-        my $pid = open3( $stdin, $stdout, $stderr, "$WAVE_EXE" )
-          or die("(EE)\t (SUFFIX $SUFFIX) Error when executing wave.exe: $!. Abort.");
+		$ENV{ROOTSYS} = "/usr/share/root";
+		my $pid = open3( $stdin, $stdout, $stderr, "$WAVE_EXE" )
+		or die("(EE)\t (SUFFIX $SUFFIX) Error when executing wave.exe: $!. Abort.");
 
-        chdir($RESULT_DIR);
-        open( my $errorLogHandle, ">", "$RESULT_DIR/log/waveError_$pid.log" )
-          or die(
+		chdir($RESULT_DIR);
+		open( my $errorLogHandle, ">", "$RESULT_DIR/log/waveError_$pid.log" )
+		or die(
 "(EE)\t (SUFFIX $SUFFIX) Cant create error log $RESULT_DIR/log/waveError_$pid.log: $!. Abort."
-          );
-        open( my $logHandle, ">", "$RESULT_DIR/log/waveLog_$pid.log" )
-          or die(
+		);
+		open( my $logHandle, ">", "$RESULT_DIR/log/waveLog_$pid.log" )
+		or die(
 "(EE)\t (SUFFIX $SUFFIX) Can't create log $RESULT_DIR/log/waveLog_$pid.log: $!. Abort."
-          );
+		);
 
 
-	my $date = localtime();
-	print "(LL)\t (SUFFIX $SUFFIX) WAVE (PID $pid) started: $date \n";
+		my $date = localtime();
+		print "(LL)\t (SUFFIX $SUFFIX) WAVE (PID $pid) started: $date \n";
 
-	waitpid( $pid, 0 );
-        my $waveExitStatus = $? >> 8;
+		waitpid( $pid, 0 );
+		my $waveExitStatus = $? >> 8;
 
-        my @stdourText = <$stdout>;
+		my @stdourText = <$stdout>;
 
-        print $logHandle @stdourText;
+		print $logHandle @stdourText;
 		
 		if($waveExitStatus > 0) {
 			
@@ -320,10 +321,13 @@ sub calc {
 				print $errorLogHandle @stderrText;
 			}
 			if($flagExitOnWaveError) {
-				die("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the lod-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log. Abort.")
+				die("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the lod-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log. Abort.");
 			}
 			else {
-				print("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the lod-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log.")
+				print("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the lod-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log.");
+				our @resultEndposition = [0,0,0];
+				our $resultMaximumEnergy = -1;
+				our $resultMaximumIntensity = -1;
 			}
 		}
 		else {
@@ -336,11 +340,12 @@ sub calc {
 				close $logHandle;
 				unlink "$RESULT_DIR/log/waveLog_$pid.log";
 			}
+			
+			rewriteFiles();
+
 		}
-	
+
 	}
-	
-	rewriteFiles();
 	
 	# Temporären Ordner entfernen
 	if ($flagDeleteTempDir == 1) {
@@ -354,12 +359,12 @@ sub calc {
 
 sub rewriteFiles {
 
-    # Daten sichern
-    # Trajektorien wenn IWFILT0 != 0, sichere FILETR
-    if ( getValue("IWFILT0") != 0) {
-        my $filename = getValue("FILETR");
-        $filename =~ /[\s]*'(.*)'.*/;
-        $filename = $1;
+	# Daten sichern
+	# Trajektorien wenn IWFILT0 != 0, sichere FILETR
+	if ( getValue("IWFILT0") != 0) {
+		my $filename = getValue("FILETR");
+		$filename =~ /[\s]*'(.*)'.*/;
+		$filename = $1;
 
 		# TODO
 		my @lines = `tail -n4 \"$TEMP_DIR/$filename\"`;
@@ -387,23 +392,23 @@ sub rewriteFiles {
 
 		}
 		
-    }
+	}
 
-    # Spektren wenn ISPEC != 0, sichere FILESP0
-    # TODO: Auf $PINHOLE achten! Ändern bei WIGGLER und UNDULATOR
-    if ( getValue("ISPEC") != 0) {
-        my $filename = getValue("FILESP0");
-        $filename =~ /[\s]*'(.*)'.*/;
-        $filename = $1;
+	# Spektren wenn ISPEC != 0, sichere FILESP0
+	# TODO: Was ist mit expert-Modus? Das muss nicht immer ein Undulator sein!!
+	if ( getValue("ISPEC") != 0 && (getValue("IUNDULATOR") != 0 || getValue("IEXPERT") != 0)) {
+		my $filename = getValue("FILESP0");
+		$filename =~ /[\s]*'(.*)'.*/;
+		$filename = $1;
 
-        open( my $resultHandle, "<", "$TEMP_DIR/$filename" )
-          or die(
+		open( my $resultHandle, "<", "$TEMP_DIR/$filename" )
+		or die(
 "(EE)\t (SUFFIX $SUFFIX) Can't open $TEMP_DIR/$filename: $!. Abort."
-          );
-        my @result = <$resultHandle>;
+		);
+		my @result = <$resultHandle>;
 
-        # Anfang wegschneiden
-        splice @result, 0, 8 + ceil(getValue("MPINZ")/3.0) +  ceil(getValue("MPINY")/3.0) + 2;
+		# Anfang wegschneiden
+		splice @result, 0, 8 + ceil(getValue("MPINZ")/3.0) +  ceil(getValue("MPINY")/3.0) + 2;
 
 		# Maximale Energie berechnen
 		my @sorted = map {[$_->[1], $_->[2]]} 
@@ -416,65 +421,76 @@ sub rewriteFiles {
 
 		my $outputHandle;
 
-        # TODO: bei Wigglern
-        
-        # Pinhole als Winkelverteilung sichern
-        if ( getValue("IPIN") != 0 && $flagWriteSpectrum == 1) {
-            open( $outputHandle,
-                ">", "$RESULT_DIR/${SUFFIX}angular_distribution.dat" )
-              or die(
+		# Pinhole als Winkelverteilung sichern
+		if ( getValue("IPIN") != 0 && $flagWriteSpectrum == 1) {
+			open( $outputHandle,
+				">", "$RESULT_DIR/${SUFFIX}angular_distribution.dat" )
+			or die(
 "(EE)\t (SUFFIX $SUFFIX) Can't open $RESULT_DIR/${SUFFIX}angular_distribution.dat: $!. Abort."
-              );
-            print $outputHandle getHeader(
+			);
+			print $outputHandle getHeader(
 "angular_distribution.dat - spectrum/intensity as angular distributaion"
-            );
-            print $outputHandle
+			);
+			print $outputHandle
 "#\n#For the angular ditribuation, all radiation energies and all sources are summed up.\n# Columns\n# x-position (m)\n# y-position (m)\n# Intensity (Photons/s/mm^2/BW)\n\n";
 
-            my @lines = @result;
+			my @lines = @result;
 
-            while ( $#lines > 0 ) {
-                my ( undef, undef, $x, $y ) = split /\s+/,
-                  ( splice @lines, 0, 1 )[0];
-                my $sum = 0;
+			while ( $#lines > 0 ) {
+				my ( undef, undef, $x, $y ) = split /\s+/,
+				( splice @lines, 0, 1 )[0];
+				my $sum = 0;
 
-                for ( my $i = 0 ; $i < getValue("NINTFREQ") ; $i++ ) {
+				for ( my $i = 0 ; $i < getValue("NINTFREQ") ; $i++ ) {
 
-                    my ( undef, $energy, $flux, undef ) = split /\s+/,
-                      $lines[0];
+					my ( undef, $energy, $flux, undef ) = split /\s+/,
+					$lines[0];
 
-  # TODO bei Wigglern: für mehr als eine Quelle: nur letzes Ergebnis betrachten
-  #splice @lines, 0, 46;
-  #my (undef, $flux) = split /\s+/, splice @lines, 0, 1;
+					$sum += $flux;
+				}
 
-                    $sum += $flux;
-                }
+				$sum = $sum / getValue("NINTFREQ");
 
-                $sum = $sum / getValue("NINTFREQ");
+				printf $outputHandle ( "%f %f %g\n", $x, $y, $sum );
+			}
 
-                printf $outputHandle ( "%f %f %g\n", $x, $y, $sum );
-            }
-
-            close $outputHandle;
-        }
+			close $outputHandle;
+		}
 
 		# Falls keine Pinhole angegeben ist, einfach die Datei rausschreiben
-        elsif($flagWriteSpectrum == 1) {
-            open( $outputHandle, ">", "$RESULT_DIR/${SUFFIX}spectrum.dat" )
-              or die(
+		elsif($flagWriteSpectrum == 1) {
+			open( $outputHandle, ">", "$RESULT_DIR/${SUFFIX}spectrum.dat" )
+			or die(
 "(EE)\t Can't open $RESULT_DIR/${SUFFIX}spectrum.dat: $!. Abort."
-              );
+			);
 			
-            print $outputHandle getHeader(
-                "spectrum.dat - spectrum/intensity");
-            print $outputHandle
+			print $outputHandle getHeader(
+				"spectrum.dat - spectrum/intensity");
+			print $outputHandle
 "#\n# Columns\n# Energy of radiation (eV) \n# Intensity (Photons/s/mm^2/BW)\n\n";
 
-            print $outputHandle @result[1..@result-1];
-            close $outputHandle;
-        }
-    }
+			print $outputHandle @result[1..@result-1];
+			close $outputHandle;
+		}
+	}
 
+	elsif ( getValue("ISPEC") != 0 && getValue("IWIGGLER") != 0) {
+		my $filename = getValue("FILESP0");
+		$filename =~ /[\s]*'(.*)'.*/;
+		$filename = $1;
+
+		open( my $resultHandle, "<", "$TEMP_DIR/$filename" )
+		or die(
+"(EE)\t (SUFFIX $SUFFIX) Can't open $TEMP_DIR/$filename: $!. Abort."
+		);
+		my @result = <$resultHandle>;
+
+		# Anfang wegschneiden
+		splice @result, 0, 8 + ceil(getValue("MPINZ")/3.0) +  ceil(getValue("MPINY")/3.0) + 2;
+
+		print "ok";
+
+	}
 
 
 }
@@ -571,12 +587,12 @@ sub gaussian_rand
 	do 
 	{ 
 		$u1 = 2 * rand() - 1; 
-	     	$u2 = 2 * rand() - 1;
-	     	$w = $u1*$u1 + $u2*$u2; 
+			$u2 = 2 * rand() - 1;
+			$w = $u1*$u1 + $u2*$u2; 
 	}
 
 	while ( $w >= 1 ); 
-	     
+		
 	$w = sqrt( (-2 * log($w)) / $w );
 	$g2 = $u1 * $w;
 	$g1 = $u2 * $w; # return both if wanted, else just one return wantarray ?($g1, $g2) : $g1; 

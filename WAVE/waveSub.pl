@@ -122,13 +122,51 @@ sub setMagnetMode {
 		WAVE::setValue("IRFILB0", 6);
 	}
 	elsif ( lc $mode eq "halbach" ) {
+
+		my (undef, $b0, $lambdau, $number) = @_;
+
 		WAVE::setValue("KHALBA", -1);
+		WAVE::setValue("B0HALBA", $b0);
+		WAVE::setValue("XLHALBA", 0);
+		WAVE::setValue("YLHALBA", 9999);
+		WAVE::setValue("ZLHALBA", $lambdau);
+		WAVE::setValue("FASYM", 0);
+		WAVE::setValue("PERHAL", $number);
+		WAVE::setValue("IAHWFOUR", 0);
+		WAVE::setValue("XCENHAL", 0);
 	}
 
 
 	else {
 		die("(EE)\t Konnte Magnet-Mode nicht in $mode ändern, da dieser Modus nicht vorhanden ist! Abbruch.");
 	}
+}
+
+sub setPinhole {
+	my ( $x, $nx, $y, $ny ) = @_;
+
+	WAVE::setValue("MPINZ", $nx);
+	WAVE::setValue("MPINY", $ny);
+	WAVE::setValue("MPINR", 0);
+	WAVE::setValue("PINW", $x);
+	WAVE::setValue("PINH", $y);
+	WAVE::setValue("IPIN", 1);
+}
+
+sub unsetPinhole {
+	WAVE::setValue("IPIN", 0);
+}
+
+sub unsetBunch {
+	WAVE::setValue("IBUNCH", 0);
+}
+
+sub setBunch {
+	my ( $number, $ubunch ) = @_;
+	
+	WAVE::setValue("IBUNCH", 1);
+	WAVE::setValue("NBUNCH", $number);
+	WAVE::setValue("IUBUNCH", $ubunch);
 }
 
 
