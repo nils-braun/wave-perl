@@ -346,6 +346,9 @@ sub calc {
 		}
 
 	}
+	else {
+		rewriteFiles();
+	}
 	
 	# Temporären Ordner entfernen
 	if ($flagDeleteTempDir == 1) {
@@ -366,7 +369,6 @@ sub rewriteFiles {
 		$filename =~ /[\s]*'(.*)'.*/;
 		$filename = $1;
 
-		# TODO
 		my @lines = `tail -n4 \"$TEMP_DIR/$filename\"`;
 
 		my (undef, $z, $x, $y, undef) = split /[\s]+/, $lines[0];
@@ -385,7 +387,6 @@ sub rewriteFiles {
 			print $outputHandle
 	"#\n# Columns\n# x-position (m)\n# y-position (m)\n# z-position(m)\n# B-field in x-direction at the position of the particle (T)\n# B-field in y-direction (T)\n# B-field in z-direction (T)\n\n";
 
-			# TODO: Besser machen?
 			print $outputHandle `cat \"$TEMP_DIR/$filename\" | awk '{ if (NR % 4 == 3 && NR > 1) { ORS = \" \"; print \$2, \$3, \$1; } else if (NR % 4 == 1 && NR > 1) { ORS = \"\\n\"; print \$2, \$3, \$1; } }'`;
 
 			close $outputHandle;
@@ -393,6 +394,10 @@ sub rewriteFiles {
 		}
 		
 	}
+
+
+	our $resultMaximumEnergy = 0;
+	our $resultMaximumIntensity = 0;
 
 	# Spektren wenn ISPEC != 0, sichere FILESP0
 	# TODO: Was ist mit expert-Modus? Das muss nicht immer ein Undulator sein!!
@@ -410,43 +415,59 @@ sub rewriteFiles {
 		# Anfang wegschneiden
 		splice @result, 0, 8 + ceil(getValue("MPINZ")/3.0) +  ceil(getValue("MPINY")/3.0) + 2;
 
-		# Maximale Energie berechnen
-		my @sorted = map {[$_->[1], $_->[2]]} 
-				sort {$b->[2] <=> $a->[2]}  
-					map { [split(/\s+/, $_)] } @result[1..@result-1];
-		
-		my $maximum = $sorted[0];
-		our $resultMaximumEnergy = $maximum->[0];
-		our $resultMaximumIntensity = $maximum->[1];
 
 		my $outputHandle;
 
 		# Pinhole als Winkelverteilung sichern
-		if ( getValue("IPIN") != 0 && $flagWriteSpectrum == 1) {
+		if ( getValue("IPIN") != 0) {
+
 			open( $outputHandle,
 				">", "$RESULT_DIR/${SUFFIX}angular_distribution.dat" )
 			or die(
 "(EE)\t (SUFFIX $SUFFIX) Can't open $RESULT_DIR/${SUFFIX}angular_distribution.dat: $!. Abort."
 			);
 			print $outputHandle getHeader(
-"angular_distribution.dat - spectrum/intensity as angular distributaion"
+"angular_distribution.dat - spectrum/intensity as angular distribution"
 			);
 			print $outputHandle
-"#\n#For the angular ditribuation, all radiation energies and all sources are summed up.\n# Columns\n# x-position (m)\n# y-position (m)\n# Intensity (Photons/s/mm^2/BW)\n\n";
+"#\n#For the angular ditribuation, all radiation energies are summed up.\n# Columns\n# x-position (m)\n# y-position (m)\n# Intensity (Photons/s/mm^2/BW)\n\n";
+
+
+			open( my $outputHandle2,
+				">", "$RESULT_DIR/${SUFFIX}spectrum.dat" )
+			or die(
+"(EE)\t (SUFFIX $SUFFIX) Can't open $RESULT_DIR/${SUFFIX}spectrum.dat: $!. Abort."
+			);
+			print $outputHandle2 getHeader(
+"spectrum.dat - spectrum/intensity"
+			);
+			print $outputHandle2
+"#\n# Columns\n# // x-position (m)\n# // y-position (m)\n# After that: Energy (eV)\n# Intensity (Photons/s/mm^2/BW)\n\n";
 
 			my @lines = @result;
 
 			while ( $#lines > 0 ) {
-				my ( undef, undef, $x, $y ) = split /\s+/,
-				( splice @lines, 0, 1 )[0];
+				my ( undef, undef, $x, $y ) = split /\s+/, ( splice @lines, 0, 1 )[0];
+
+				printf $outputHandle2 ( "// %f %f\n", $x, $y );
+
 				my $sum = 0;
 
 				for ( my $i = 0 ; $i < getValue("NINTFREQ") ; $i++ ) {
 
-					my ( undef, $energy, $flux, undef ) = split /\s+/,
-					$lines[0];
+					my ( undef, $energy, undef ) = split /\s+/, $lines[0];
 
-					$sum += $flux;
+					my ( undef, $flux, undef ) = split /\s+/, ( splice @lines, 0, 1)[0];
+
+					printf $outputHandle2 ( "%f %g\n", $energy, $flux );
+
+ 					$sum += $flux;
+
+
+					if($flux > $resultMaximumIntensity) {
+						$resultMaximumEnergy = $energy;
+						$resultMaximumIntensity = $flux;
+					}
 				}
 
 				$sum = $sum / getValue("NINTFREQ");
@@ -455,10 +476,11 @@ sub rewriteFiles {
 			}
 
 			close $outputHandle;
+			close $outputHandle2;
 		}
 
 		# Falls keine Pinhole angegeben ist, einfach die Datei rausschreiben
-		elsif($flagWriteSpectrum == 1) {
+		else {
 			open( $outputHandle, ">", "$RESULT_DIR/${SUFFIX}spectrum.dat" )
 			or die(
 "(EE)\t Can't open $RESULT_DIR/${SUFFIX}spectrum.dat: $!. Abort."
@@ -471,6 +493,15 @@ sub rewriteFiles {
 
 			print $outputHandle @result[1..@result-1];
 			close $outputHandle;
+
+			# Maximale Energie berechnen
+			my @sorted = map {[$_->[1], $_->[2]]} 
+					sort {$b->[2] <=> $a->[2]}  
+						map { [split(/\s+/, $_)] } @result[1..@result-1];
+			
+			my $maximum = $sorted[0];
+			$resultMaximumEnergy = $maximum->[0];
+			$resultMaximumIntensity = $maximum->[1];
 		}
 	}
 
@@ -485,11 +516,98 @@ sub rewriteFiles {
 		);
 		my @result = <$resultHandle>;
 
+		my $dataline = $result[2];
+
 		# Anfang wegschneiden
-		splice @result, 0, 8 + ceil(getValue("MPINZ")/3.0) +  ceil(getValue("MPINY")/3.0) + 2;
+		$dataline =~ /\s+(\d+).*/;
+		my $numberSources = $1;
+		splice @result, 0, 8 + ceil($numberSources/3.0) + ceil(getValue("MPINZ")/3.0) +  ceil(getValue("MPINY")/3.0) + 3;
 
-		print "ok";
+		my $outputHandle;
 
+		# Pinhole als Winkelverteilung sichern
+		if ( getValue("IPIN") != 0) {
+			open( $outputHandle,
+				">", "$RESULT_DIR/${SUFFIX}angular_distribution.dat" )
+			or die(
+"(EE)\t (SUFFIX $SUFFIX) Can't open $RESULT_DIR/${SUFFIX}angular_distribution.dat: $!. Abort."
+			);
+			print $outputHandle getHeader(
+"angular_distribution.dat - spectrum/intensity as angular distribution"
+			);
+			print $outputHandle
+"#\n#For the angular ditribuation, all radiation energies and all sources are summed up.\n# Columns\n# x-position (m)\n# y-position (m)\n# Intensity (Photons/s/mm^2/BW)\n\n";
+
+
+			open( my $outputHandle2,
+				">", "$RESULT_DIR/${SUFFIX}spectrum.dat" )
+			or die(
+"(EE)\t (SUFFIX $SUFFIX) Can't open $RESULT_DIR/${SUFFIX}spectrum.dat: $!. Abort."
+			);
+			print $outputHandle2 getHeader(
+"spectrum.dat - spectrum/intensity"
+			);
+			print $outputHandle2
+"#\n# Columns\n# // x-position (m)\n# // y-position (m)\n# After that: Energy (eV)\n# Intensity (Photons/s/mm^2/BW)\n\n";
+
+			my @lines = @result;
+
+			while ( $#lines > 0 ) {
+				my ( undef, undef, $x, $y ) = split /\s+/, ( splice @lines, 0, 1 )[0];
+
+				printf $outputHandle2 ( "// %f %f\n", $x, $y );
+
+				my $sum = 0;
+
+				for ( my $i = 0 ; $i < getValue("NINTFREQ") ; $i++ ) {
+
+					my ( undef, $energy, undef ) = split /\s+/, $lines[0];
+
+					my ( undef, $flux, undef ) = split /\s+/, ( splice @lines, 0, ceil($numberSources / 3.0) + 1)[ceil($numberSources / 3.0)];
+
+					printf $outputHandle2 ( "%f %g\n", $energy, $flux );
+	
+					if($flux > $resultMaximumIntensity) {
+						$resultMaximumEnergy = $energy;
+						$resultMaximumIntensity = $flux;
+					}
+
+ 					$sum += $flux;
+				}
+
+				$sum = $sum / getValue("NINTFREQ");
+
+				printf $outputHandle ( "%f %f %g\n", $x, $y, $sum );
+			}
+
+			close $outputHandle;
+			close $outputHandle2;
+		}
+
+		# Falls keine Pinhole angegeben ist, einfach die Datei rausschreiben
+		else {
+			open( $outputHandle, ">", "$RESULT_DIR/${SUFFIX}spectrum.dat" )
+			or die(
+"(EE)\t Can't open $RESULT_DIR/${SUFFIX}spectrum.dat: $!. Abort."
+			);
+			
+			print $outputHandle getHeader(
+				"spectrum.dat - spectrum/intensity");
+			print $outputHandle
+"#\n# Columns\n# Energy of radiation (eV) \n# Intensity (Photons/s/mm^2/BW)\n\n";
+
+			print $outputHandle @result[1..@result-1];
+			close $outputHandle;
+
+			# Maximale Energie berechnen
+			my @sorted = map {[$_->[1], $_->[2]]} 
+					sort {$b->[2] <=> $a->[2]}  
+						map { [split(/\s+/, $_)] } @result[1..@result-1];
+			
+			my $maximum = $sorted[0];
+			$resultMaximumEnergy = $maximum->[0];
+			$resultMaximumIntensity = $maximum->[1];
+		}
 	}
 
 
