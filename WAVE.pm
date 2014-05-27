@@ -6,16 +6,6 @@
 
 WAVE - Packet um WAVE-Eingaben und -Ausgaben zu steuern
 
-=head1 SYNOPSIS
-
-use WAVE;
-# Pfad zur WAVE Executable, muss vorhanden sein
-my $WAVE_EXE = "/media/Daten/Projects/Perl/wave.exe";
-# Ordner für die späteren Resultate, wird bei nicht Vorhandensein erstellt
-my $RESULT_DIR = "/media/Daten/Projects/Perl/test";
-
-TODO
-
 =head1 DESCRIPTION
 
 Stellt Funktionen zum Bearbeiten der wave.in-Datei, zum Ausfuehren von WAVE und zum spaeteren
@@ -34,6 +24,15 @@ sondern nur die interne Darstellung.
 
 Schreibt die internen wave.in-Daten in eine wave.in-Datei
 im Ordner C<$tempdir>.
+
+=item Mögliche Ausgabevariablen
+
+Alle selbsterklärend:
+
+@resultEndposition
+@resultEndmomentum
+@resultMaximumEnergy
+@resultMaximumIntensity
 
 =back 
 
@@ -71,7 +70,7 @@ use IPC::Open3;
 # Ordnerstrukturen und Pfade
 # Pfad zur WAVE Executable, muss vorhanden sein
 # Neue wave.exe funktioniert anders?????
-my $WAVE_EXE = "/home/braun/Programme/wave/wave/bin/wave.exe.bkp";
+my $WAVE_EXE = "/usr/local/bin/wave";
 
 # Ordner für die späteren Resultate, wird bei nicht Vorhandensein erstellt
 our $RESULT_DIR = "";
@@ -81,6 +80,9 @@ our $WORKING_DIR = "";
 
 # Variable zum Speichern des temporären Ordners.
 my $TEMP_DIR = "";
+
+# Datei mit WAVE-artigen Partikeldaten. Wird benutzt falls $flagOwnParticleFile = 1 
+our $PARTICLE_FILE = "";
 
 # Datei mit WAVE-artigen Magnetfeldwerten. Wird benutzt falls angegeben.
 our $MAGNET_FILE = "";
@@ -96,7 +98,7 @@ our $flagWriteTrajectory = 1;
 our $flagWriteSpectrum = 1;
 our $flagWriteLog = 1;
 our $flagDeleteTempDir = 0;
-our $flagOwnParticleFile = 0; # TODO
+our $flagOwnParticleFile = 0;
 our $flagExitOnWaveError = 1;
 
 # Inhalt der Teilchendatei, welcher entweder gesetzt wird oder neu kreiert
@@ -240,11 +242,22 @@ sub prepareFolders {
 		
 			open(my $particleFileHandle, ">", "$TEMP_DIR/wave_phasespace.dat") or die "(EE)\t (SUFFIX $SUFFIX) Can't create $TEMP_DIR/wave_phasespace.dat: $!. Abort";
 			print $particleFileHandle $particleData;
-			close($particleData);
+			close($particleFileHandle);
 		}
 		else {
-			# TODO
-			die("Not yet implemented.");
+			
+			if ($PARTICLE_FILE eq "" or not ( -f "$PARTICLE_FILE")) {
+
+				die("(EE)\t (SUFFIX $SUFFIX) You have not set \$PARTICLE_FILE or it is not a valid file. Abort.");
+			}
+			else {
+				open(my $oldparticleFileHandle, "<", "$PARTICLE_FILE") or die "(EE)\t (SUFFIX $SUFFIX) Can't open $PARTICLE_FILE: $!. Abort";
+				open(my $particleFileHandle, ">", "$TEMP_DIR/wave_phasespace.dat") or die "(EE)\t (SUFFIX $SUFFIX) Can't create $TEMP_DIR/wave_phasespace.dat: $!. Abort";
+				foreach (<$oldparticleFileHandle>) {
+					print $particleFileHandle $_;
+				}
+				close($particleFileHandle);
+			} 
 		}
 	}
 	
@@ -296,7 +309,7 @@ sub calc {
 		chdir($RESULT_DIR);
 		open( my $errorLogHandle, ">", "$RESULT_DIR/log/waveError_$pid.log" )
 		or die(
-"(EE)\t (SUFFIX $SUFFIX) Cant create error log $RESULT_DIR/log/waveError_$pid.log: $!. Abort."
+"(EE)\t (SUFFIX $SUFFIX) Can't create error log $RESULT_DIR/log/waveError_$pid.log: $!. Abort."
 		);
 		open( my $logHandle, ">", "$RESULT_DIR/log/waveLog_$pid.log" )
 		or die(
@@ -321,10 +334,10 @@ sub calc {
 				print $errorLogHandle @stderrText;
 			}
 			if($flagExitOnWaveError) {
-				die("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the lod-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log. Abort.");
+				die("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the log-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log. Abort.");
 			}
 			else {
-				print("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the lod-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log.");
+				print("(EE)\t (SUFFIX $SUFFIX) WAVE (PID $pid) was not stopped properly. Errorcode $waveExitStatus. More information in the log-File $RESULT_DIR/waveError_$pid.log or $RESULT_DIR/waveLog_$pid.log. No abort.");
 				our @resultEndposition = [0,0,0];
 				our $resultMaximumEnergy = -1;
 				our $resultMaximumIntensity = -1;
@@ -362,6 +375,9 @@ sub calc {
 
 sub rewriteFiles {
 
+	our @resultEndposition = (-1, -1, -1);
+	our @resultEndmomentum = (-1, -1, 1);
+
 	# Daten sichern
 	# Trajektorien wenn IWFILT0 != 0, sichere FILETR
 	if ( getValue("IWFILT0") != 0) {
@@ -370,10 +386,11 @@ sub rewriteFiles {
 		$filename = $1;
 
 		my @lines = `tail -n4 \"$TEMP_DIR/$filename\"`;
-
 		my (undef, $z, $x, $y, undef) = split /[\s]+/, $lines[0];
+		@resultEndposition = ($x, $y, $z);
 
-		our @resultEndposition = ($x, $y, $z);
+		my (undef, $pz, $px, $py, undef) = split /[\s]+/, $lines[1];
+		@resultEndmomentum = ($px, $py, $pz);
 
 		if($flagWriteTrajectory == 1) {
 
@@ -392,9 +409,7 @@ sub rewriteFiles {
 			close $outputHandle;
 
 		}
-		
 	}
-
 
 	our $resultMaximumEnergy = 0;
 	our $resultMaximumIntensity = 0;
@@ -609,8 +624,6 @@ sub rewriteFiles {
 			$resultMaximumIntensity = $maximum->[1];
 		}
 	}
-
-
 }
 
 
