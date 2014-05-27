@@ -254,7 +254,9 @@ sub prepareFolders {
 				open(my $oldparticleFileHandle, "<", "$PARTICLE_FILE") or die "(EE)\t (SUFFIX $SUFFIX) Can't open $PARTICLE_FILE: $!. Abort";
 				open(my $particleFileHandle, ">", "$TEMP_DIR/wave_phasespace.dat") or die "(EE)\t (SUFFIX $SUFFIX) Can't create $TEMP_DIR/wave_phasespace.dat: $!. Abort";
 				foreach (<$oldparticleFileHandle>) {
-					print $particleFileHandle $_;
+          if (not ($_ =~ /^\s*#.*$/)) {
+					  print $particleFileHandle $_;
+          }
 				}
 				close($particleFileHandle);
 			} 
