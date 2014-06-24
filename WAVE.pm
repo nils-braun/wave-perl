@@ -103,7 +103,7 @@ our $flagOwnParticleFile = 0;
 our $flagExitOnWaveError = 1;
 
 # Inhalt der Teilchendatei, welcher entweder gesetzt wird oder neu kreiert
-my $particleData = "";
+our $particleData = "";
 
 # ------------------------------------------------------------ #
 # Funktion setValue(key, value)
@@ -642,10 +642,10 @@ sub rewriteFiles {
 # der Twissparameter erstellt werden. 
 # Die Formeln sind aus dem Anhang von CERN/PS 2001-0013 (AE) von ASM
 
-# Bearbeitung Nils: 	Verschiedene Werte fÃ¼r betax und betay (sowie alphax und alphay) kÃ¶nnen angegeben werden.
+# Bearbeitung Nils: 	Verschiedene Werte für betax und betay (sowie alphax und alphay) können angegeben werden.
 #			Ausgabe in Format (gamma dx dy dz dpx/p dpy/p dpz/p)
 
-# BenÃ¶tigt Ã¼bergebene Variablen in
+# Benötigt übergebene Variablen in
 # BETAX, ALPHAX, BETAY, ALPHAY, EPSILON
 #-------------------------------------------------------------
 
