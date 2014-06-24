@@ -63,6 +63,7 @@ my $DEBUG = 0;
 
 use File::Temp qw(tempdir);
 use File::Path qw(remove_tree make_path);
+use File::Copy;
 use IPC::Open3;
 
 # Konstanten
@@ -626,6 +627,12 @@ sub rewriteFiles {
 			$resultMaximumIntensity = $maximum->[1];
 		}
 	}
+
+
+    # Teilchenverteilung! Also Ergebnis speichern...
+    if(getValue("IBUNCH") != 0 && getValue("IUBUNCH") == 3 ) {
+        copy("$TEMP_DIR/wave_phasespace_bunch.dat", "$RESULT_DIR/${SUFFIX}wave_phasespace_bunch.dat")
+    }
 }
 
 
