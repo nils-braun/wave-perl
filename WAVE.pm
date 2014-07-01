@@ -71,7 +71,7 @@ use IPC::Open3;
 # Ordnerstrukturen und Pfade
 # Pfad zur WAVE Executable, muss vorhanden sein
 # Neue wave.exe funktioniert anders?????
-my $WAVE_EXE = "/usr/local/bin/wave";
+my $WAVE_EXE = "/usr/local/share/perl5/WAVE/wave";
 
 # Ordner für die späteren Resultate, wird bei nicht Vorhandensein erstellt
 our $RESULT_DIR = "";
