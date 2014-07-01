@@ -101,6 +101,7 @@ our $flagWriteLog = 1;
 our $flagDeleteTempDir = 0;
 our $flagOwnParticleFile = 0;
 our $flagExitOnWaveError = 1;
+our $flagWriteRoot = 0;
 
 # Inhalt der Teilchendatei, welcher entweder gesetzt wird oder neu kreiert
 our $particleData = "";
@@ -382,6 +383,13 @@ sub rewriteFiles {
 	our @resultEndmomentum = (-1, -1, 1);
 
 	# Daten sichern
+    # ROOT-Datei
+    
+    if ($flagWriteRoot == 1) {
+        copy("$TEMP_DIR/wave.root", "$RESULT_DIR/${SUFFIX}root.root");
+    }
+    
+    
 	# Trajektorien wenn IWFILT0 != 0, sichere FILETR
 	if ( getValue("IWFILT0") != 0) {
 		my $filename = getValue("FILETR");
