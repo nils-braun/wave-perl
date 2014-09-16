@@ -4,25 +4,20 @@ package WAVE::waveIn;
 
 =head1 NAME
 
-WAVE::waveIn - Packet der wave.in-Datei
-
-=head1 SYNOPSIS
-
-use WAVE::waveIn;
+WAVE::waveIn - perl module to edit the wave.in file. Is included by WAVE.pm. Do not include by hand.
 
 =head1 DESCRIPTION
 
-Stellt den Hash %waveInArray zur weiteren Verwendung bereit. Dieser enthaelt 
-die Konstanten der wave.in-Datei, welche aus einer Urdatei gelesen werden.
+After including this module, the hash C<%waveInArray> and the array C<@waveIn> can be used outside this module.
+Do not use them manually! See waveSub.pm and WAVE.pm for better functions to use and more informations.
 
 =head1 AUTHOR
 
 Nils Braun I<area51.nils@googlemail.com>
 
-head1 ACKNOWLEDGEMENTS
+=head1 ACKNOWLEDGEMENTS
 
-Das Programm WAVE ist geschrieben von Michael Scheer. Für weitere Informationen
-ueber Lizenzen, siehe dort.
+The programm WAVE is written by Michael Scheer. For more informations an licencing see there.
 
 =cut
 
@@ -30,12 +25,11 @@ use strict;
 use warnings;
 use Exporter;
 
+# Exported variables
 our @ISA = qw(Exporter);
-
-# Exportieren der Funktionen und Variablen
 our @EXPORT = qw( %waveInArray @waveIn );
 
-# Der Grundtext der wave.in-Configdatei
+# The text of the wave.in-file
 my $waveInText = <<'WAVEINCONFIGENDE';
   !
  ! 	             VERSION 2.70/11
@@ -3071,9 +3065,10 @@ $OPTIK
  $end
 WAVEINCONFIGENDE
 
-# Den Text splitten und in den Hash geben
+# The array @waveIn as a splitted form of the text
 our @waveIn = split /\n/, $waveInText;
 
+# The hash %waveInArray with the keywords.
 our %waveInArray = ();
 my $sub = "";
 

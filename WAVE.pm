@@ -4,46 +4,25 @@
 
 =head1 NAME
 
-WAVE - Packet um WAVE-Eingaben und -Ausgaben zu steuern
+WAVE - Perl module to control the WAVE calculation
+
+=head1 SYNOPSIS
+
+See the provided example files in /las-archiv1/users/braun/Skripte
 
 =head1 DESCRIPTION
 
-Stellt Funktionen zum Bearbeiten der wave.in-Datei, zum Ausfuehren von WAVE und zum spaeteren
-Auswerten der Ausgabedateien bereit.
-
-=head2 Methoden
-
-=over 12
-
-=item C<setValue($key, $value)>
-
-Aendert den C<$key> in wave.in in C<$value> um. Dabei wird keine Datei geaendert,
-sondern nur die interne Darstellung.
-
-=item C<writeWaveIn($tempdir)>
-
-Schreibt die internen wave.in-Daten in eine wave.in-Datei
-im Ordner C<$tempdir>.
-
-=item Mögliche Ausgabevariablen
-
-Alle selbsterklärend:
-
-@resultEndposition
-@resultEndmomentum
-@resultMaximumEnergy
-@resultMaximumIntensity
-
-=back 
+B<MISSING!>
 
 =head1 AUTHOR
 
 Nils Braun I<area51.nils@googlemail.com>
 
-head1 ACKNOWLEDGEMENTS
+=head1 ACKNOWLEDGEMENTS
 
-Das Programm WAVE ist geschrieben von Michael Scheer. Für weitere Informationen
-ueber Lizenzen, siehe dort.
+The programm WAVE is written by Michael Scheer. For more informations an licencing see there.
+
+=head1 FLAGS
 
 =cut
 
@@ -57,8 +36,11 @@ use Math::Trig;
 
 require "WAVE/waveSub.pl";
 
-# use PDL::IO::Misc;
+=head2 $DEBUG
 
+Internal flag for debugging.
+
+=cut
 my $DEBUG = 0;
 
 use File::Temp qw(tempdir);
@@ -67,52 +49,137 @@ use File::Copy;
 use IPC::Open3;
 
 # Konstanten
-# ------------------------------------------------------------ #
+# -----------------------------------------------------------------------------------------------#
 # Ordnerstrukturen und Pfade
 # Pfad zur WAVE Executable, muss vorhanden sein
 # Neue wave.exe funktioniert anders?????
+
+=head2 $WAVE_EXE
+
+Internal path to the wave executable. Must not be changed!
+
+=cut
 my $WAVE_EXE = "/usr/local/share/perl5/WAVE/wave";
 
-# Ordner für die späteren Resultate, wird bei nicht Vorhandensein erstellt
+=head2 $RESULT_DIR
+
+Folder for the results. Will be created if not present.
+
+=cut
 our $RESULT_DIR = "";
 
-# Ordner für die Berechnungen. Falls nicht angegeben, wird ein temporärer Ordner erstellt.
+=head2 $WORKING_DIR
+
+Folder for the temporary files. If not specified, WAVE.pm will use a temporary folder. See C<$flagDeleteTempDir> to delete the WORKING_DIR after clculations or not (especially important of the folder is not a temporary folder!)
+
+=cut
 our $WORKING_DIR = "";
 
-# Variable zum Speichern des temporären Ordners.
 my $TEMP_DIR = "";
 
-# Datei mit WAVE-artigen Partikeldaten. Wird benutzt falls $flagOwnParticleFile = 1 
+=head2 $PARTICLE_FILE
+
+Path to a file with WAVE-like particles. Is used when C<$flagOwnParticleFile = 1>. If bunch is set you have to provide a PARTICLE_FILE or call make_particles.
+
+=cut
 our $PARTICLE_FILE = "";
 
-# Datei mit WAVE-artigen Magnetfeldwerten. Wird benutzt falls angegeben.
+=head2 $MAGNET_FILE
+
+Path to a file with WAVE-like magnet data. Must be specified when using magnet mode file or magnet mode fileLinear. If provided, it will be used and the other magnet modes are overwritten.
+
+=cut
 our $MAGNET_FILE = "";
 
-# Suffix, welcher vor jede erstelle Datei angehängt wird. Wird benutzt falls angegeben.
+=head2 $SUFFIX
+
+SUFFIX is used as a suffix for all output files and messages.
+
+=cut
 our $SUFFIX = "";
 
-# Frei wählbarer Text, welcher in jeder Ausgabedatei erscheint. Bei Zeilenumbrüchen auf "#" am Anfang achten.
+=head2 $USER_TEXT
+
+USER_TEXT is printed into all output files of provided.
+
+=cut
 our $USER_TEXT = "";
 
-# Flags, ob Daten geschrieben werden (auf 0 setzen in Scriptmodus)
+=head2 $flagWriteTrajectory
+
+Flag to write the trajectory to the RESULT_DIR.
+
+=cut
 our $flagWriteTrajectory = 1;
+
+=head2 $flagWriteSpectrum
+
+Flag to write the spectrum to the RESULT_DIR.
+
+=cut
 our $flagWriteSpectrum = 1;
+
+=head2 $flagWriteLog
+
+Flag to write the log to the RESULT_DIR/log.
+
+=cut
 our $flagWriteLog = 1;
+
+=head2 $flagDeleteTempDir
+
+Flag to delete the WORKING_DIR after calculation. Attention if the WORKING_DIR is provided.
+
+=cut
 our $flagDeleteTempDir = 0;
+
+=head2 $flagOwnParticleFile
+
+Flag to set if the provided PARTICLE_FILE should be used.
+
+=cut
 our $flagOwnParticleFile = 0;
+
+=head2 $flagExitOnWaveError
+
+Flag to set if WAVE.pm should exit on a WAVE error or not (usefull in script mode).
+
+=cut
 our $flagExitOnWaveError = 1;
+
+=head2 $flagWriteRoot
+
+Flag to write all the results into a root file in the RESULT_DIR. Makes the calculations very slow.
+
+=cut
 our $flagWriteRoot = 0;
 
-# Inhalt der Teilchendatei, welcher entweder gesetzt wird oder neu kreiert
+=head2 $particleData
+
+Content of the newly created or provided particle file after the calculation.
+
+=cut
 our $particleData = "";
 
-# ------------------------------------------------------------ #
+=head1 FUNCTIONS
+=cut
+# -----------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------#
+
+
+# -----------------------------------------------------------------------------------------------#
 # Funktion setValue(key, value)
-# Verändert einen Wert im wave.in-Hash. Bricht ab, falls es den Key nicht gibt.
+# Ver�ndert einen Wert im wave.in-Hash. Bricht ab, falls es den Key nicht gibt.
 # Parameter:
 # key: Welche Variable gesetzt wird.
 # value: Auf welchen Wert die Variable gesetzt wird.
 
+=head2 C<setValue>
+
+Internal function. For comments (in german) see WAVE.pm.
+
+=cut
 sub setValue {
 
 	my ( $key, $value ) = @_;
@@ -127,12 +194,17 @@ sub setValue {
 	}
 }
 
-# ------------------------------------------------------------ #
+# -----------------------------------------------------------------------------------------------#
 # Funktion getValue(key)
-# Gibt einen Wert im wave.in-Hash zurück. Bricht ab, falls es den Key nicht gibt.
+# Gibt einen Wert im wave.in-Hash zur�ck. Bricht ab, falls es den Key nicht gibt.
 # Parameter:
 # key: Welche Variable abgerufen wird.
 
+=head2 C<getValue>
+
+Internal function. For comments (in german) see WAVE.pm.
+
+=cut
 sub getValue {
 
 	my ($key) = @_;
@@ -147,10 +219,15 @@ sub getValue {
 	}
 }
 
-# ------------------------------------------------------------ #
+# -----------------------------------------------------------------------------------------------#
 # Funktion writeWaveIn(workingDir)
-# Werte in eine wave.in-Datei schreiben, welche sich im TEMP_DIR befindet. Achtung: vorherige Dateien werden überschrieben.
+# Werte in eine wave.in-Datei schreiben, welche sich im TEMP_DIR befindet. Achtung: vorherige Dateien werden �berschrieben.
 
+=head2 C<writeWaveIn>
+
+Internal function. For comments (in german) see WAVE.pm.
+
+=cut
 sub writeWaveIn {
 
 	open( my $waveconfigFileHandle, ">", "$TEMP_DIR/wave.in" )
@@ -168,12 +245,17 @@ sub writeWaveIn {
 	close($waveconfigFileHandle);
 }
 
-# ------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------#
 # Funktion prepareFolders()
-# Überprüfung der Ordnerstruktur
-# Die Ordner werden auf Existenz überprüft und
-# wenn nötig erstellt
+# �berpr�fung der Ordnerstruktur
+# Die Ordner werden auf Existenz �berpr�ft und
+# wenn n�tig erstellt
 
+=head2 C<prepareFolders>
+
+Internal function. For comments (in german) see WAVE.pm.
+
+=cut
 sub prepareFolders {
 
 	if ( !-e "$WAVE_EXE" ) {
@@ -270,13 +352,19 @@ sub prepareFolders {
 	
 }
 
-# ------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------#
 # Funktion getHeader(title)
-# Gibt den Header zurück, welcher in jeder geschriebenen Datei stehen sollte.
-# Darin sind Informationen über den WAVE-Run enthalten, das Datum, der Suffix und ein paar Infos
-# über die wave.in. Weiterhin eine vom Benutzer festgelegte Zeile. Die Zeilen sind als Kommentare mit "#" versehen
+# Gibt den Header zur�ck, welcher in jeder geschriebenen Datei stehen sollte.
+# Darin sind Informationen �ber den WAVE-Run enthalten, das Datum, der Suffix und ein paar Infos
+# �ber die wave.in. Weiterhin eine vom Benutzer festgelegte Zeile. Die Zeilen sind als Kommentare mit "#" versehen
 # Parameter:
-# title: Ein zustätzlicher title, welcher eingebaut wird
+# title: Ein zust�tzlicher title, welcher eingebaut wird
+
+=head2 C<getHeader>
+
+Internal function. For comments (in german) see WAVE.pm.
+
+=cut
 sub getHeader {
 	my ($title) = @_;
 	return
@@ -285,11 +373,14 @@ sub getHeader {
 	. "\n# Executed in $TEMP_DIR\n# Files saved in $RESULT_DIR\n#\n# Magnetfile (if set): $MAGNET_FILE\n# Suffix $SUFFIX\n# $USER_TEXT\n\n";
 }
 
-# ------------------------------------------------------------#
-# Function calc()
-# Ausführen
-# WAVE starten und Daten sicher
+# -----------------------------------------------------------------------------------------------#
+=head2 C<calc()>
 
+Use the input parameters and falgs defined before and start the calculation of WAVE. The errorLog and the log are written into files in the log folder which is a subfolder of the WAVE::RESULT_DIR. They are named after the pid of the WAVE process which can be seen in the log of WAVE.pm. After the WVAE process has finished, the WAVE output files are written into readably format and copied into WAVE::RESULT_DIR. They are named I<SUFFIX_filename.ending>.
+
+After the calculation, the following variables can be used for further analysis: C<@resultEndposition>, C<@resultEndmomentum>, C<$resultMaximumEnergy>, C<$resultMaximumIntensity>.
+
+=cut
 sub calc {
 
 	# Ordner ueberpruefen
@@ -373,10 +464,15 @@ sub calc {
 	}
 }
 
-# ------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------#
 # Function rewriteFiles()
 # Gesicherte Dateien in benutzerfreundliches Format speichern
 
+=head2 C<rewriteFiles>
+
+Internal function. For comments (in german) see WAVE.pm.
+
+=cut
 sub rewriteFiles {
 
 	our @resultEndposition = (-1, -1, -1);
@@ -644,8 +740,8 @@ sub rewriteFiles {
 }
 
 
-# ## COPY FROM verteilung_twiss.pm
-#------------------------------------------------------------
+# TODO
+# -----------------------------------------------------------------------------------------------#
 # Das Programm erzeugt eine monoenergetische Verteilung, die nach Vorgaben
 # der Twissparameter erstellt werden. 
 # Die Formeln sind aus dem Anhang von CERN/PS 2001-0013 (AE) von ASM
@@ -657,8 +753,12 @@ sub rewriteFiles {
 # BETAX, ALPHAX, BETAY, ALPHAY, EPSILON
 #-------------------------------------------------------------
 
-sub make_particles
-{
+=head2 C<make_particles(BETAX, ALPHAX, BETAY, ALPHAY, EPSILON)>
+
+Instead of providing a C<$PARTICLE_FILE> with the flag C<$flagOwnParticleFile> you can creaty particle on the fly with this functions. Before calling the function, the number of particles must be set using the function C<setBunch(NUMBER, BUNCHMODE)> in waveSub.pm. The twiss parameters (BETAX, ALPHAX, BETAY, ALPHAY, EPSILON) are used to control the shape of the particle distribution via a gaussion distribution. The input parameters are all in meter, without a unit or in meter rad.
+
+=cut
+sub make_particles {
 	my @TWISS = @_;
 	
 	$particleData = "";
@@ -724,10 +824,15 @@ sub make_particles
 }
 
 
-#Gaussverteilung
-#----------------------------------
-sub gaussian_rand 
-{
+# -----------------------------------------------------------------------------------------------#
+# Function gaussian_rand()
+
+=head2 C<gaussian_rand>
+
+Internal function. For comments (in german) see WAVE.pm.
+
+=cut
+sub gaussian_rand {
 	my ($u1, $u2); # uniformly distributed random numbers
 	my $w; # variance, then a weight
 	my ($g1, $g2); # gaussian-distributed numbers
@@ -747,7 +852,6 @@ sub gaussian_rand
 
 	return $g1;
 }
-#-----------------------------------
 
 
 return 1;
